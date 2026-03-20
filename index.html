@@ -1,0 +1,2615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THRONE — Custom Tattoo Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;0,6..96,900;1,6..96,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════
+     CSS RESET & VARIABLES — LIGHT MODE
+     ═══════════════════════════════════════════ */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* Light theme palette */
+    --bg-main: #f7f3ea;
+    --bg-dark: #1a1816;
+    --bg-navy: #141b34;
+    --bg-white: #ffffff;
+
+    --gold: #b8935a;
+    --gold-dark: #8b6b3a;
+    --gold-dim: rgba(139, 107, 58, 0.15);
+
+    --text-dark: #141b34;
+    --text-brown: #4a3f33;
+    --text-muted: #6b5e4a;
+    --text-light: #f7f3ea;
+    --text-cream: #e8d5b7;
+
+    --border-light: #e5e1d8;
+    --border-gold: rgba(139, 107, 58, 0.2);
+
+    --font-display: 'Bodoni Moda', serif;
+    --font-body: 'Cormorant Garamond', serif;
+    --font-sans: 'Tenor Sans', sans-serif;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold) var(--bg-main);
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-main);
+    color: var(--text-brown);
+    overflow-x: hidden;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle grain overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+
+  /* ═══════════════════════════════════════════
+     UTILITY: ORNAMENTAL DIVIDER
+     ═══════════════════════════════════════════ */
+  .ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 24px auto;
+    width: fit-content;
+  }
+
+  .ornament::before,
+  .ornament::after {
+    content: '';
+    width: 60px;
+    height: 1px;
+    background: var(--gold-dark);
+  }
+
+  .ornament-diamond {
+    width: 8px;
+    height: 8px;
+    background: var(--gold-dark);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  .section-label {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    text-align: center;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    font-weight: 700;
+    text-align: center;
+    color: var(--text-dark);
+    line-height: 1.15;
+    margin-bottom: 20px;
+  }
+
+  /* ═══════════════════════════════════════════
+     SCROLL REVEAL ANIMATIONS
+     ═══════════════════════════════════════════ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ═══════════════════════════════════════════
+     NAVIGATION
+     ═══════════════════════════════════════════ */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 20px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-dark);
+    transition: background 0.5s, padding 0.5s, backdrop-filter 0.5s;
+  }
+
+  .nav.scrolled {
+    background: rgba(26, 24, 22, 0.95);
+    backdrop-filter: blur(12px);
+    padding: 14px 48px;
+    border-bottom: 1px solid rgba(184, 147, 90, 0.1);
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-cream);
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 4px;
+    transition: color 0.3s;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--gold);
+    transition: width 0.4s var(--ease-out-expo);
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-book-btn {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--bg-dark);
+    background: var(--gold);
+    padding: 10px 24px;
+    text-decoration: none;
+    border: 1px solid var(--gold);
+    transition: all 0.4s var(--ease-out-expo);
+    font-weight: 500;
+  }
+
+  .nav-book-btn:hover {
+    background: transparent;
+    color: var(--gold);
+  }
+
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .nav-toggle span {
+    width: 24px;
+    height: 1.5px;
+    background: var(--text-cream);
+    transition: all 0.3s;
+  }
+
+  /* ═══════════════════════════════════════════
+     HERO SECTION
+     ═══════════════════════════════════════════ */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 700px;
+    max-height: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero-bg-image {
+    position: absolute;
+    inset: 0;
+    background-image: url('assets/2f8fa953190d7b1298ccfe29d4a0e87eda2c1ee9.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(12px);
+    transform: scale(1.05);
+  }
+
+  .hero-bg-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(14, 21, 14, 1) 0%,
+      rgba(247, 243, 234, 0) 19%,
+      rgba(26, 24, 22, 0) 21%,
+      rgba(26, 24, 22, 0.6) 48%,
+      rgb(26, 24, 22) 100%
+    );
+  }
+
+  .hero-bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.55);
+  }
+
+  .hero-corner {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-color: var(--gold-dark);
+    border-style: solid;
+    opacity: 0.25;
+    z-index: 2;
+  }
+  .hero-corner--tl { top: 80px; left: 80px; border-width: 1px 0 0 1px; }
+  .hero-corner--tr { top: 80px; right: 80px; border-width: 1px 1px 0 0; }
+  .hero-corner--bl { bottom: 80px; left: 80px; border-width: 0 0 1px 1px; }
+  .hero-corner--br { bottom: 80px; right: 80px; border-width: 0 1px 1px 0; }
+
+  .hero-content {
+    position: relative;
+    z-index: 3;
+    max-width: 800px;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero-est {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: var(--text-light);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 1s var(--ease-out-expo) 0.3s forwards;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 10vw, 7.5rem);
+    font-weight: 700;
+    line-height: 0.9;
+    color: var(--text-light);
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp 1.2s var(--ease-out-expo) 0.5s forwards;
+  }
+
+  .hero-subtitle-main {
+    font-family: var(--font-sans);
+    font-size: 36px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0;
+    opacity: 0;
+    animation: fadeUp 1s var(--ease-out-expo) 0.7s forwards;
+  }
+
+  .hero-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--gold-dark);
+    margin: 32px auto;
+    opacity: 0;
+    animation: fadeUp 1s var(--ease-out-expo) 0.8s forwards;
+  }
+
+  .hero-tagline {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--gold);
+    max-width: 480px;
+    margin: 0 auto 40px;
+    opacity: 0;
+    animation: fadeUp 1s var(--ease-out-expo) 1s forwards;
+  }
+
+  .hero-cta-group {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 1s var(--ease-out-expo) 1.2s forwards;
+  }
+
+  .btn-primary {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 16px 40px;
+    background: var(--gold);
+    color: var(--bg-dark);
+    border: 1px solid var(--gold);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.4s var(--ease-out-expo);
+  }
+
+  .btn-primary:hover {
+    background: transparent;
+    color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(184, 147, 90, 0.3);
+  }
+
+  .btn-secondary {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 16px 40px;
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid rgba(247, 243, 234, 0.3);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.4s var(--ease-out-expo);
+    opacity: 0.7;
+  }
+
+  .btn-secondary:hover {
+    border-color: rgba(247, 243, 234, 0.6);
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    z-index: 3;
+    opacity: 0;
+    animation: fadeUp 1s var(--ease-out-expo) 1.6s forwards;
+  }
+
+  .hero-scroll span {
+    font-family: var(--font-sans);
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(247, 243, 234, 0.4);
+  }
+
+  .hero-scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+    50% { opacity: 1; transform: scaleY(1); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ═══════════════════════════════════════════
+     FEATURES SECTION
+     ═══════════════════════════════════════════ */
+  .features {
+    padding: 120px 128px;
+    position: relative;
+    background: var(--bg-main);
+  }
+
+  .features-header {
+    max-width: 600px;
+    margin: 0 auto 60px;
+  }
+
+  .features-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .feature-card {
+    background: var(--bg-white);
+    border: 1px solid var(--gold-dark);
+    padding: 48px 36px;
+    position: relative;
+    transition: all 0.5s var(--ease-out-expo);
+    overflow: hidden;
+    opacity: 0.85;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gold-dark);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s var(--ease-out-expo);
+  }
+
+  .feature-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .feature-card:hover {
+    opacity: 1;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(139, 107, 58, 0.1);
+  }
+
+  .feature-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 24px;
+    display: block;
+    color: var(--gold-dark);
+  }
+
+  .feature-icon svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--gold-dark);
+    stroke-width: 1.2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .feature-title {
+    font-family: var(--font-sans);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-brown);
+    margin-bottom: 12px;
+  }
+
+  .feature-desc {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-brown);
+    line-height: 1.7;
+  }
+
+  /* ═══════════════════════════════════════════
+     ABOUT SECTION
+     ═══════════════════════════════════════════ */
+  .about {
+    padding: 120px 128px;
+    position: relative;
+    background: var(--bg-main);
+  }
+
+  .about-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 480px 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .about-image-frame {
+    position: relative;
+    height: 620px;
+    overflow: hidden;
+  }
+
+  .about-image-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .about-image-frame::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    border: 1px solid var(--gold);
+    opacity: 0.3;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .about-text .section-label,
+  .about-text .section-title { text-align: left; }
+
+  .about-text p {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-brown);
+    margin-bottom: 16px;
+    line-height: 1.9;
+    max-width: 480px;
+    opacity: 0.9;
+  }
+
+  .about-stats {
+    display: flex;
+    gap: 48px;
+    margin-top: 40px;
+    padding: 32px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    position: relative;
+  }
+
+  .about-stats::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gold-dark);
+  }
+
+  .about-stat-num {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--gold-dark);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .about-stat-label {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ═══════════════════════════════════════════
+     SERVICES SECTION
+     ═══════════════════════════════════════════ */
+  .services {
+    padding: 120px 200px;
+    background: var(--bg-main);
+    position: relative;
+  }
+
+  .services-header {
+    max-width: 600px;
+    margin: 0 auto 60px;
+  }
+
+  .services-grid {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .service-item {
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.4s var(--ease-out-expo);
+  }
+
+  .service-item:first-child {
+    border-top: 1px solid var(--border-light);
+  }
+
+  .service-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s;
+  }
+
+  .service-header:hover {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .service-name {
+    font-family: var(--font-sans);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text-dark);
+    transition: color 0.3s;
+  }
+
+  .service-header:hover .service-name {
+    color: var(--gold-dark);
+  }
+
+  .service-meta {
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .service-duration {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-brown);
+    opacity: 0.5;
+  }
+
+  .service-price {
+    font-family: var(--font-sans);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--gold-dark);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .service-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.4s var(--ease-out-expo);
+    margin-left: 16px;
+  }
+
+  .service-toggle svg {
+    width: 12px;
+    height: 12px;
+    stroke: var(--gold-dark);
+    stroke-width: 1.5;
+    fill: none;
+  }
+
+  .service-item.open .service-toggle {
+    transform: rotate(180deg);
+  }
+
+  /* Accordion panel */
+  .service-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s var(--ease-out-expo);
+  }
+
+  .service-item.open .service-details {
+    max-height: 400px;
+  }
+
+  .service-details-inner {
+    padding: 0 0 28px 0;
+  }
+
+  .service-details-meta {
+    display: none;
+  }
+
+  .service-checklist {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 32px;
+  }
+
+  .service-checklist li {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-brown);
+    padding-left: 28px;
+    position: relative;
+    line-height: 1.6;
+    opacity: 0.8;
+  }
+
+  .service-checklist li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--gold-dark);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  /* ═══════════════════════════════════════════
+     GALLERY SECTION
+     ═══════════════════════════════════════════ */
+  .gallery {
+    padding: 120px 128px;
+    background: var(--bg-main);
+    position: relative;
+  }
+
+  .gallery-header {
+    max-width: 600px;
+    margin: 0 auto 60px;
+  }
+
+  .gallery-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 300px;
+    gap: 12px;
+  }
+
+  .gallery-item {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .gallery-item:nth-child(1) {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+
+  .gallery-item:nth-child(4) {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease-out-expo);
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.05);
+  }
+
+  .gallery-item-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px;
+    background: linear-gradient(transparent, rgba(26, 24, 22, 0.8));
+    transform: translateY(100%);
+    transition: transform 0.5s var(--ease-out-expo);
+  }
+
+  .gallery-item:hover .gallery-item-label {
+    transform: translateY(0);
+  }
+
+  .gallery-item-label span {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-cream);
+  }
+
+  /* ═══════════════════════════════════════════
+     TEAM SECTION
+     ═══════════════════════════════════════════ */
+  .team {
+    padding: 120px 128px;
+    background: var(--bg-main);
+    position: relative;
+  }
+
+  .team-header {
+    max-width: 600px;
+    margin: 0 auto 60px;
+  }
+
+  .team-grid {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .team-card {
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .team-photo {
+    width: 100%;
+    height: 370px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .team-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease-out-expo), filter 0.5s;
+    filter: grayscale(20%);
+  }
+
+  .team-card:hover .team-photo img {
+    transform: scale(1.04);
+    filter: grayscale(0%);
+  }
+
+  /* Differentiate identical photos */
+  .team-card:nth-child(1) .team-photo img {
+    object-position: center 15%;
+  }
+
+  .team-card:nth-child(2) .team-photo img {
+    object-position: center 30%;
+    transform: scaleX(-1);
+  }
+
+  .team-card:nth-child(2):hover .team-photo img {
+    transform: scaleX(-1) scale(1.04);
+  }
+
+  .team-card:nth-child(3) .team-photo img {
+    object-position: center 25%;
+    filter: grayscale(30%) contrast(1.05);
+  }
+
+  .team-card:nth-child(3):hover .team-photo img {
+    filter: grayscale(0%) contrast(1);
+  }
+
+  .team-name {
+    font-family: var(--font-sans);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text-dark);
+    margin-top: 24px;
+    margin-bottom: 4px;
+  }
+
+  .team-role {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    margin-bottom: 12px;
+  }
+
+  .team-bio {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-brown);
+    line-height: 1.7;
+    opacity: 0.8;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  /* ═══════════════════════════════════════════
+     TESTIMONIALS SECTION (Dark)
+     ═══════════════════════════════════════════ */
+  .testimonials {
+    padding: 120px 128px;
+    background: var(--bg-navy);
+    position: relative;
+  }
+
+  .testimonials .section-label { color: var(--gold); }
+  .testimonials .section-title { color: var(--text-light); }
+
+  .testimonials-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .testimonial-card {
+    border: 1px solid rgba(184, 147, 90, 0.15);
+    padding: 48px 40px;
+    position: relative;
+    transition: all 0.5s var(--ease-out-expo);
+    background: rgba(184, 147, 90, 0.04);
+  }
+
+  .testimonial-card:hover {
+    border-color: rgba(184, 147, 90, 0.3);
+    transform: translateY(-4px);
+    background: rgba(184, 147, 90, 0.08);
+  }
+
+  .testimonial-name {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-cream);
+    margin-bottom: 8px;
+  }
+
+  .testimonial-stars {
+    color: var(--gold);
+    font-size: 14px;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+
+  .testimonial-text {
+    font-family: var(--font-body);
+    font-size: 17px;
+    font-weight: 300;
+    font-style: italic;
+    color: rgba(232, 213, 183, 0.7);
+    line-height: 1.8;
+  }
+
+  .testimonial-quote {
+    font-family: var(--font-display);
+    font-size: 90px;
+    color: var(--gold);
+    opacity: 0.25;
+    position: absolute;
+    top: 12px;
+    right: 28px;
+    line-height: 1;
+  }
+
+  /* ═══════════════════════════════════════════
+     FAQ SECTION
+     ═══════════════════════════════════════════ */
+  .faq {
+    padding: 120px 200px;
+    background: var(--bg-main);
+    position: relative;
+  }
+
+  .faq-header {
+    max-width: 600px;
+    margin: 0 auto 60px;
+  }
+
+  .faq-grid {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    position: relative;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .faq-item:first-child {
+    border-top: 1px solid var(--border-light);
+  }
+
+  .faq-question {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0;
+    cursor: pointer;
+    user-select: none;
+    gap: 20px;
+  }
+
+  .faq-question h3 {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-dark);
+    transition: color 0.3s;
+  }
+
+  .faq-question:hover h3 {
+    color: var(--gold-dark);
+  }
+
+  .faq-toggle {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--border-light);
+    border-radius: 50%;
+    transition: all 0.4s var(--ease-out-expo);
+    position: relative;
+  }
+
+  .faq-toggle::before,
+  .faq-toggle::after {
+    content: '';
+    position: absolute;
+    background: var(--gold-dark);
+    transition: transform 0.4s var(--ease-out-expo);
+  }
+
+  .faq-toggle::before {
+    width: 12px;
+    height: 1.5px;
+  }
+
+  .faq-toggle::after {
+    width: 1.5px;
+    height: 12px;
+  }
+
+  .faq-item.open .faq-toggle {
+    border-color: var(--gold-dark);
+    background: var(--gold-dim);
+  }
+
+  .faq-item.open .faq-toggle::after {
+    transform: rotate(90deg);
+  }
+
+  .faq-question:hover .faq-toggle {
+    border-color: var(--gold-dark);
+  }
+
+  .faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s var(--ease-out-expo);
+  }
+
+  .faq-item.open .faq-answer {
+    max-height: 300px;
+  }
+
+  .faq-answer p {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-brown);
+    line-height: 1.8;
+    padding-bottom: 24px;
+    opacity: 0.8;
+  }
+
+  /* ═══════════════════════════════════════════
+     CONTACT FORM SECTION
+     ═══════════════════════════════════════════ */
+  .contact-form-section {
+    padding: 120px 200px;
+    background: var(--bg-main);
+    position: relative;
+  }
+
+  .contact-form-header {
+    max-width: 600px;
+    margin: 0 auto 60px;
+  }
+
+  .contact-form {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--bg-white);
+    padding: 48px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 4px 24px rgba(139, 107, 58, 0.06);
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .form-label {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-brown);
+    margin-bottom: 10px;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    padding: 14px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-light);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color 0.3s;
+  }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.5;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    border-bottom-color: var(--gold-dark);
+  }
+
+  .form-select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b6b3a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0 center;
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    border: 1px solid var(--border-light);
+    padding: 14px;
+  }
+
+  .form-note {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-top: 8px;
+  }
+
+  .form-submit {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 16px 40px;
+    background: var(--gold-dark);
+    color: var(--bg-white);
+    border: 1px solid var(--gold-dark);
+    cursor: pointer;
+    transition: all 0.4s var(--ease-out-expo);
+    margin-top: 16px;
+  }
+
+  .form-submit:hover {
+    background: transparent;
+    color: var(--gold-dark);
+    transform: translateY(-2px);
+  }
+
+  /* ═══════════════════════════════════════════
+     BOOKING CTA SECTION (Dark)
+     ═══════════════════════════════════════════ */
+  .booking-cta {
+    padding: 120px 48px;
+    background: var(--bg-navy);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .booking-cta .section-label { color: var(--gold); }
+
+  .booking-cta-title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 5rem);
+    font-weight: 700;
+    color: var(--text-light);
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+
+  .booking-cta-text {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    color: rgba(232, 213, 183, 0.6);
+    max-width: 500px;
+    margin: 0 auto 40px;
+    line-height: 1.8;
+  }
+
+  .booking-cta-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ═══════════════════════════════════════════
+     CONTACT / INFO SECTION (Dark)
+     ═══════════════════════════════════════════ */
+  .contact {
+    padding: 120px 128px;
+    background: var(--bg-dark);
+    position: relative;
+  }
+
+  .contact-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 60px;
+  }
+
+  .contact-phone {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 32px;
+    grid-column: 1 / -1;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+  }
+
+  .contact-col h3 {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-cream);
+    margin-bottom: 24px;
+  }
+
+  .contact-hours {
+    list-style: none;
+  }
+
+  .contact-hours li {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: rgba(232, 213, 183, 0.5);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(184, 147, 90, 0.06);
+  }
+
+  .contact-hours li span:last-child {
+    color: var(--text-cream);
+  }
+
+  .contact-info-list {
+    list-style: none;
+  }
+
+  .contact-info-list li {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: rgba(232, 213, 183, 0.6);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  .contact-info-list a {
+    color: var(--gold);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .contact-info-list a:hover { color: var(--text-cream); }
+
+  .contact-map {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    margin-top: 16px;
+    position: relative;
+    border: 1px solid rgba(184, 147, 90, 0.15);
+    transition: border-color 0.3s;
+    cursor: pointer;
+  }
+
+  .contact-map:hover {
+    border-color: rgba(184, 147, 90, 0.4);
+  }
+
+  .contact-map img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+  }
+
+  .contact-map:hover img {
+    opacity: 1;
+  }
+
+  /* ═══════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════ */
+  .footer {
+    padding: 40px 48px;
+    background: var(--bg-dark);
+    border-top: 1px solid rgba(184, 147, 90, 0.12);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-copy {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(232, 213, 183, 0.3);
+  }
+
+  .footer-social {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+
+  .footer-social a {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(232, 213, 183, 0.3);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .footer-social a:hover { color: var(--gold); }
+
+  /* ═══════════════════════════════════════════
+     RESPONSIVE
+     ═══════════════════════════════════════════ */
+  /* ═══════════════════════════════════════════
+     TABLET (max-width: 1024px)
+     ═══════════════════════════════════════════ */
+  @media (max-width: 1024px) {
+    .features,
+    .about,
+    .gallery,
+    .team,
+    .testimonials,
+    .contact {
+      padding-left: 48px;
+      padding-right: 48px;
+    }
+
+    .services,
+    .faq,
+    .contact-form-section {
+      padding-left: 48px;
+      padding-right: 48px;
+    }
+
+    .about-inner {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+
+    .about-image-frame {
+      height: 400px;
+      max-width: 420px;
+    }
+
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .team-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .testimonials-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .contact-inner {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     MOBILE (max-width: 768px)
+     ═══════════════════════════════════════════
+     TYPE SCALE (6 sizes only):
+       H1:             40px  — hero title, booking CTA title
+       H2:             32px  — section titles
+       H3:             24px  — feature titles, team names, service names, contact phone
+       Body 1:         18px  — about body, hero subtitle, service prices, testimonial text
+       Body 2:         16px  — feature desc, about body 2, FAQ questions, checklist, team bio, hero tagline, form inputs
+       Caption:        14px  — section labels, nav links, buttons, durations, stat labels, roles, FAQ answers, footer, gallery labels, nav logo
+     ═══════════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* --- NAV --- */
+    .nav {
+      padding: 14px 20px;
+    }
+
+    .nav.scrolled {
+      padding: 12px 20px;
+    }
+
+    .nav-logo {
+      font-size: 14px;       /* Caption */
+      letter-spacing: 4px;
+    }
+
+    .nav-links { display: none; }
+    .nav-toggle { display: flex; }
+    /* Desktop: hide the in-menu book button */
+  .nav-menu-book { display: none; }
+
+    .nav-book-btn {
+      font-size: 14px;       /* Caption */
+      letter-spacing: 2px;
+      padding: 8px 16px;
+    }
+
+    /* Hide top-bar book button on mobile */
+    .nav > .nav-book-btn {
+      display: none;
+    }
+
+    .nav-links.active {
+      display: flex;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      background: var(--bg-dark);
+      padding: 24px 20px;
+      gap: 20px;
+      border-bottom: 1px solid rgba(184, 147, 90, 0.1);
+    }
+
+    /* Show book button inside open menu */
+    .nav-links.active .nav-menu-book {
+      display: block;
+      margin-top: 4px;
+    }
+
+    .nav-book-btn--menu {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 14px 20px;
+      font-size: 14px;
+      letter-spacing: 3px;
+    }
+
+    .nav-links a {
+      font-size: 14px;       /* Caption */
+    }
+
+    /* --- HERO --- */
+    .hero {
+      min-height: 600px;
+      max-height: 100vh;
+    }
+
+    .hero-est {
+      font-size: 14px;       /* Caption */
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: 40px;       /* H1 */
+      letter-spacing: -1px;
+    }
+
+    .hero-subtitle-main {
+      font-size: 18px;       /* Body 1 */
+      letter-spacing: 3px;
+    }
+
+    .hero-tagline {
+      font-size: 16px;       /* Body 2 */
+      padding: 0 12px;
+    }
+
+    .hero-divider {
+      margin: 24px auto;
+    }
+
+    .hero-cta-group {
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 0;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+      max-width: 280px;
+      text-align: center;
+      padding: 14px 32px;
+      font-size: 14px;       /* Caption */
+    }
+
+    .hero-corner { display: none; }
+
+    .hero-scroll {
+      bottom: 24px;
+      left: 0;
+      right: 0;
+      transform: none;
+      width: 100%;
+      align-items: center;
+    }
+
+    .hero-scroll span {
+      font-size: 14px;       /* Caption */
+      letter-spacing: 3px;
+    }
+
+    /* --- SECTION SHARED --- */
+    .section-label {
+      font-size: 14px;       /* Caption */
+      letter-spacing: 4px;
+    }
+
+    .section-title {
+      font-size: 32px;       /* H2 */
+    }
+
+    /* --- FEATURES --- */
+    .features {
+      padding: 64px 20px;
+    }
+
+    .features-header {
+      margin-bottom: 40px;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .feature-card {
+      padding: 32px 24px;
+    }
+
+    .feature-title { font-size: 24px; }  /* H3 */
+    .feature-desc { font-size: 16px; }  /* Body 2 */
+
+    /* --- ABOUT --- */
+    .about {
+      padding: 64px 20px;
+    }
+
+    .about-inner {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .about-image-frame {
+      height: 320px;
+      max-width: 100%;
+    }
+
+    .about-text p {
+      font-size: 16px;       /* Body 2 */
+      max-width: 100%;
+    }
+
+    .about-stats {
+      gap: 32px;
+      padding: 24px 20px;
+      margin-top: 32px;
+    }
+
+    .about-stat-num { font-size: 32px; }   /* H2 */
+    .about-stat-label { font-size: 14px; letter-spacing: 2px; }  /* Caption */
+
+    /* --- SERVICES --- */
+    .services {
+      padding: 64px 20px;
+    }
+
+    .services-header {
+      margin-bottom: 40px;
+    }
+
+    .service-header {
+      padding: 20px 0;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .service-name {
+      font-size: 18px;       /* Body 1 */
+      flex: 1;
+      min-width: 0;
+    }
+
+    .service-meta {
+      gap: 12px;
+    }
+
+    .service-duration {
+      display: none;         /* Hidden in header on mobile */
+    }
+
+    .service-details-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .service-details-meta span {
+      font-family: var(--font-sans);
+      font-size: 14px;       /* Caption */
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .service-price {
+      font-size: 18px;       /* Body 1 */
+      min-width: 60px;
+    }
+
+    .service-checklist {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .service-checklist li {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    /* --- GALLERY --- */
+    .gallery {
+      padding: 64px 20px;
+    }
+
+    .gallery-header {
+      margin-bottom: 40px;
+    }
+
+    .gallery-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: 200px;
+      gap: 8px;
+    }
+
+    .gallery-item:nth-child(1),
+    .gallery-item:nth-child(4) {
+      grid-column: span 2;
+      height: auto;
+    }
+
+    .gallery-item-label {
+      transform: translateY(0);
+      background: linear-gradient(transparent 30%, rgba(26, 24, 22, 0.7));
+    }
+
+    .gallery-item-label span {
+      font-size: 14px;       /* Caption */
+    }
+
+    /* --- TEAM --- */
+    .team {
+      padding: 64px 20px;
+    }
+
+    .team-header {
+      margin-bottom: 40px;
+    }
+
+    .team-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    .team-photo {
+      height: 320px;
+    }
+
+    .team-name { font-size: 24px; margin-top: 16px; }  /* H3 */
+    .team-role { font-size: 14px; }                     /* Caption */
+    .team-bio { font-size: 16px; }                      /* Body 2 */
+
+    /* --- TESTIMONIALS --- */
+    .testimonials {
+      padding: 64px 20px;
+    }
+
+    .testimonials-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .testimonial-card {
+      padding: 32px 24px;
+    }
+
+    .testimonial-name { font-size: 14px; }              /* Caption */
+    .testimonial-text { font-size: 18px; }              /* Body 1 */
+    .testimonial-quote { font-size: 60px; top: 8px; right: 16px; }
+
+    /* --- FAQ --- */
+    .faq {
+      padding: 64px 20px;
+    }
+
+    .faq-header {
+      margin-bottom: 40px;
+    }
+
+    .faq-question h3 {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    .faq-answer p {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    /* --- CONTACT FORM --- */
+    .contact-form-section {
+      padding: 64px 20px;
+    }
+
+    .contact-form-header {
+      margin-bottom: 40px;
+    }
+
+    .contact-form {
+      padding: 28px 20px;
+    }
+
+    .form-label {
+      font-size: 14px;       /* Caption */
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    .form-note {
+      font-size: 14px;       /* Caption */
+    }
+
+    .form-submit {
+      width: 100%;
+      font-size: 14px;       /* Caption */
+    }
+
+    /* --- BOOKING CTA --- */
+    .booking-cta {
+      padding: 64px 20px;
+    }
+
+    .booking-cta-title {
+      font-size: 40px;       /* H1 */
+    }
+
+    .booking-cta-text {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    .booking-cta-buttons {
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .booking-cta-buttons .btn-primary,
+    .booking-cta-buttons .btn-secondary {
+      width: 100%;
+      max-width: 280px;
+    }
+
+    /* --- CONTACT INFO --- */
+    .contact {
+      padding: 64px 20px;
+    }
+
+    .contact-inner {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .contact-phone {
+      font-size: 24px;       /* H3 */
+      margin-bottom: 16px;
+    }
+
+    .contact-col h3 {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    .contact-hours li {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    .contact-info-list li {
+      font-size: 16px;       /* Body 2 */
+    }
+
+    /* --- FOOTER --- */
+    .footer {
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+      padding: 24px 20px;
+    }
+
+    .footer-copy { font-size: 14px; }                   /* Caption */
+    .footer-social { gap: 16px; }
+    .footer-social a { font-size: 14px; }               /* Caption */
+
+    /* --- ORNAMENTS --- */
+    .ornament::before,
+    .ornament::after {
+      width: 40px;
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     SMALL PHONES (max-width: 400px)
+     ═══════════════════════════════════════════ */
+  @media (max-width: 400px) {
+    .about-stats {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .gallery-grid {
+      grid-template-columns: 1fr;
+      grid-auto-rows: 240px;
+    }
+
+    .gallery-item:nth-child(1),
+    .gallery-item:nth-child(4) {
+      grid-column: span 1;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav class="nav" id="nav">
+  <a href="#" class="nav-logo">T H R O N E</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#team">Artists</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li class="nav-menu-book"><a href="#booking" class="nav-book-btn nav-book-btn--menu">Book Now</a></li>
+  </ul>
+  <a href="#booking" class="nav-book-btn">Book Now</a>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="hero-bg-image"></div>
+    <div class="hero-bg-gradient"></div>
+    <div class="hero-bg-overlay"></div>
+  </div>
+  <div class="hero-corner hero-corner--tl"></div>
+  <div class="hero-corner hero-corner--tr"></div>
+  <div class="hero-corner hero-corner--bl"></div>
+  <div class="hero-corner hero-corner--br"></div>
+  <div class="hero-content">
+    <p class="hero-est">EST. 2019 &middot; PORTLAND, OREGON</p>
+    <h1 class="hero-title">THRONE STUDIO</h1>
+    <p class="hero-subtitle-main">Custom Tattoo Studio</p>
+    <div class="hero-divider"></div>
+    <p class="hero-tagline">Every line tells a story.<br>Where timeless craft meets modern artistry.</p>
+    <div class="hero-cta-group">
+      <a href="#booking" class="btn-primary">BOOK A SESSION</a>
+      <a href="#services" class="btn-secondary">VIEW SERVICES</a>
+    </div>
+  </div>
+  <a href="#features" class="hero-scroll">
+    <span>SCROLL</span>
+    <div class="hero-scroll-line"></div>
+  </a>
+</section>
+
+<!-- ═══════════════ FEATURES ═══════════════ -->
+<section class="features" id="features">
+  <div class="features-header">
+    <span class="section-label reveal">WHY CHOOSE US</span>
+    <h2 class="section-title reveal">The Throne Difference</h2>
+    <div class="ornament reveal">
+      <div class="ornament-diamond"></div>
+    </div>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal reveal-delay-1">
+      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 19l-7-7 1.41-1.41L12 16.17l5.59-5.58L19 12l-7 7z"/><path d="M12 3v13" stroke-dasharray="2 3"/><circle cx="12" cy="3" r="1.5" fill="currentColor" stroke="none"/><path d="M4 21h16"/></svg></span>
+      <h3 class="feature-title">Master Craftsmanship</h3>
+      <p class="feature-desc">Every artist holds 10+ years of experience and ongoing training in latest techniques.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 12h5v8h6v-8h5L12 2z"/><path d="M8 22h8"/></svg></span>
+      <h3 class="feature-title">Premium Ink &amp; Safety</h3>
+      <p class="feature-desc">We use only medical-grade equipment and premium ink for clean, consistent results.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+      <h3 class="feature-title">5-Star Atmosphere</h3>
+      <p class="feature-desc">Private booths, curated playlists, and a calm environment designed for focus.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <span class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg></span>
+      <h3 class="feature-title">Easy Booking</h3>
+      <p class="feature-desc">Book online in seconds or walk in anytime. Real-time availability.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M17 18c0 1-1.5 3-5 3s-5-2-5-3"/></svg></span>
+      <h3 class="feature-title">Complimentary Drinks</h3>
+      <p class="feature-desc">Every visit includes craft coffee, tea, or a splash of house bourbon.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <span class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span>
+      <h3 class="feature-title">Loyalty Rewards</h3>
+      <p class="feature-desc">Every 10th visit is free. Plus exclusive access to events.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ABOUT ═══════════════ -->
+<section class="about" id="about">
+  <div class="about-inner">
+    <div class="about-image-frame reveal">
+      <img src="assets/43ffb35e9cd9207b7b0f17dfbac1175507c5ed1e.png" alt="Inside Throne Studio">
+    </div>
+    <div class="about-text">
+      <span class="section-label reveal">OUR STORY</span>
+      <h2 class="section-title reveal">More Than<br>a Tattoo</h2>
+      <div class="ornament reveal" style="margin-left: 0; justify-content: flex-start;">
+        <div class="ornament-diamond"></div>
+      </div>
+      <p class="reveal">Throne was born from a belief that a tattoo studio should be a sanctuary &mdash; a place where craft is honored, conversation flows freely, and every client leaves with art that lasts a lifetime.</p>
+      <p class="reveal">Founded by lead tattoo artist Marcus Cole, our studio blends timeless techniques with contemporary style. From bold blackwork to fine-line realism, we approach every session with precision and care.</p>
+      <div class="about-stats reveal">
+        <div>
+          <div class="about-stat-num">7</div>
+          <div class="about-stat-label">YEARS RUNNING</div>
+        </div>
+        <div>
+          <div class="about-stat-num">12k+</div>
+          <div class="about-stat-label">HAPPY CLIENTS</div>
+        </div>
+        <div>
+          <div class="about-stat-num">5</div>
+          <div class="about-stat-label">TATTOO ARTISTS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SERVICES ═══════════════ -->
+<section class="services" id="services">
+  <div class="services-header">
+    <span class="section-label reveal">WHAT WE OFFER</span>
+    <h2 class="section-title reveal">Services &amp; Pricing</h2>
+    <div class="ornament reveal">
+      <div class="ornament-diamond"></div>
+    </div>
+  </div>
+  <div class="services-grid">
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Custom Design Consultation</span>
+        <div class="service-meta">
+          <span class="service-duration">30 MIN</span>
+          <span class="service-price">$75</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>30 MIN</span></div>
+          <ul class="service-checklist">
+            <li>One-on-one design session</li>
+            <li>Reference gathering &amp; mood boards</li>
+            <li>Custom sketch drafts</li>
+            <li>Placement discussion</li>
+            <li>Size &amp; pricing estimate</li>
+            <li>Digital mockup preview</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Black &amp; Gray Tattoo</span>
+        <div class="service-meta">
+          <span class="service-duration">2-4 HRS</span>
+          <span class="service-price">$200/hr</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>2-4 HRS</span></div>
+          <ul class="service-checklist">
+            <li>Custom design included</li>
+            <li>Premium black ink</li>
+            <li>Smooth gradient shading</li>
+            <li>Aftercare kit provided</li>
+            <li>Free touch-up within 3 months</li>
+            <li>Photo documentation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Realism Tattoo</span>
+        <div class="service-meta">
+          <span class="service-duration">3-6 HRS</span>
+          <span class="service-price">$250/hr</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>3-6 HRS</span></div>
+          <ul class="service-checklist">
+            <li>Photo-realistic detail work</li>
+            <li>Portrait specialization</li>
+            <li>High-detail shading</li>
+            <li>Premium ink selection</li>
+            <li>Multiple reference options</li>
+            <li>Free touch-up within 3 months</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Cover-Up Tattoo</span>
+        <div class="service-meta">
+          <span class="service-duration">3-6 HRS</span>
+          <span class="service-price">$250/hr</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>3-6 HRS</span></div>
+          <ul class="service-checklist">
+            <li>Existing tattoo assessment</li>
+            <li>Custom cover design</li>
+            <li>Strategic placement planning</li>
+            <li>Color correction expertise</li>
+            <li>Multiple design iterations</li>
+            <li>Before/after documentation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Fine-Line Tattoo</span>
+        <div class="service-meta">
+          <span class="service-duration">2-4 HRS</span>
+          <span class="service-price">$200/hr</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>2-4 HRS</span></div>
+          <ul class="service-checklist">
+            <li>Delicate linework</li>
+            <li>Minimalist designs</li>
+            <li>Script &amp; lettering</li>
+            <li>Micro detail precision</li>
+            <li>Aftercare kit included</li>
+            <li>Free touch-up within 3 months</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Full Sleeve Session</span>
+        <div class="service-meta">
+          <span class="service-duration">6-8 HRS</span>
+          <span class="service-price">$250/hr</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>6-8 HRS</span></div>
+          <ul class="service-checklist">
+            <li>Full arm composition</li>
+            <li>Multi-session planning</li>
+            <li>Cohesive design flow</li>
+            <li>Progress documentation</li>
+            <li>Touch-ups between sessions</li>
+            <li>Priority scheduling</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Touch-Up Session</span>
+        <div class="service-meta">
+          <span class="service-duration">1-2 HRS</span>
+          <span class="service-price">$150/hr</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>1-2 HRS</span></div>
+          <ul class="service-checklist">
+            <li>Color refreshing</li>
+            <li>Line sharpening</li>
+            <li>Detail restoration</li>
+            <li>Free for Throne originals</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="service-item reveal">
+      <div class="service-header" onclick="toggleAccordion(this)">
+        <span class="service-name">Color Tattoo</span>
+        <div class="service-meta">
+          <span class="service-duration">2-4 HRS</span>
+          <span class="service-price">$225/hr</span>
+          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+        </div>
+      </div>
+      <div class="service-details">
+        <div class="service-details-inner">
+          <div class="service-details-meta"><span>2-4 HRS</span></div>
+          <ul class="service-checklist">
+            <li>Full-color custom work</li>
+            <li>Vibrant ink selection</li>
+            <li>Color theory consultation</li>
+            <li>Watercolor &amp; neo-traditional</li>
+            <li>Aftercare kit provided</li>
+            <li>Free touch-up within 3 months</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ GALLERY ═══════════════ -->
+<section class="gallery" id="gallery">
+  <div class="gallery-header">
+    <span class="section-label reveal">THE ATMOSPHERE</span>
+    <h2 class="section-title reveal">Inside Throne</h2>
+    <div class="ornament reveal">
+      <div class="ornament-diamond"></div>
+    </div>
+  </div>
+  <div class="gallery-grid">
+    <div class="gallery-item reveal reveal-delay-1">
+      <img src="assets/ffa12b4ea584ca232c425159153183e313d5f9aa.png" alt="The Main Floor">
+      <div class="gallery-item-label"><span>The Main Floor</span></div>
+    </div>
+    <div class="gallery-item reveal reveal-delay-2">
+      <img src="assets/11f282e3e7e4506f88cfca1d233656fa84557f5f.png" alt="Tattoo Station">
+      <div class="gallery-item-label"><span>Tattoo Station</span></div>
+    </div>
+    <div class="gallery-item reveal reveal-delay-3">
+      <img src="assets/14310f7cf74c8a1bcf87924de54bd5f71e938f1e.png" alt="Heritage Chairs">
+      <div class="gallery-item-label"><span>Heritage Chairs</span></div>
+    </div>
+    <div class="gallery-item reveal reveal-delay-1">
+      <img src="assets/ffe8e1550df1694bd38d786b85c93191cb58d086.png" alt="The Lounge">
+      <div class="gallery-item-label"><span>The Lounge</span></div>
+    </div>
+    <div class="gallery-item reveal reveal-delay-2">
+      <img src="assets/800273bb58b26d8c20ebcfa80d681d783e244213.png" alt="Product Wall">
+      <div class="gallery-item-label"><span>Product Wall</span></div>
+    </div>
+    <div class="gallery-item reveal reveal-delay-3">
+      <img src="assets/590882a3ec000ca8e99eca0639add180fb1ec674.png" alt="Vinyl Corner">
+      <div class="gallery-item-label"><span>Vinyl Corner</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TEAM ═══════════════ -->
+<section class="team" id="team">
+  <div class="team-header">
+    <span class="section-label reveal">THE CRAFTSMEN</span>
+    <h2 class="section-title reveal">Meet Your Tattoo Artists</h2>
+    <div class="ornament reveal">
+      <div class="ornament-diamond"></div>
+    </div>
+  </div>
+  <div class="team-grid">
+    <div class="team-card reveal reveal-delay-1">
+      <div class="team-photo">
+        <img src="assets/7af8e80ac69dd9b75a3a01a5b9ee1fb290ed0357.png" alt="Marcus Cole">
+      </div>
+      <h3 class="team-name">Marcus Cole</h3>
+      <p class="team-role">FOUNDER &amp; TATTOO ARTIST</p>
+      <p class="team-bio">20 years behind the machine. Trained in London. Specializes in bold blackwork and fine-line realism.</p>
+    </div>
+    <div class="team-card reveal reveal-delay-2">
+      <div class="team-photo">
+        <img src="assets/7af8e80ac69dd9b75a3a01a5b9ee1fb290ed0357.png" alt="James Rivera">
+      </div>
+      <h3 class="team-name">James Rivera</h3>
+      <p class="team-role">SENIOR TATTOO ARTIST</p>
+      <p class="team-bio">Realism specialist and detail expert. Known for precision shading and crisp linework.</p>
+    </div>
+    <div class="team-card reveal reveal-delay-3">
+      <div class="team-photo">
+        <img src="assets/7af8e80ac69dd9b75a3a01a5b9ee1fb290ed0357.png" alt="Elijah Okafor">
+      </div>
+      <h3 class="team-name">Elijah Okafor</h3>
+      <p class="team-role">TATTOO ARTIST</p>
+      <p class="team-bio">Color specialist with a creative edge. Brings fashion-forward style to every tattoo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TESTIMONIALS ═══════════════ -->
+<section class="testimonials" id="testimonials">
+  <div class="features-header">
+    <span class="section-label reveal">WHAT THEY SAY</span>
+    <h2 class="section-title reveal">Client Voices</h2>
+    <div class="ornament reveal">
+      <div class="ornament-diamond"></div>
+    </div>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card reveal reveal-delay-1">
+      <span class="testimonial-quote">&ldquo;</span>
+      <p class="testimonial-name">DAVID HARRINGTON</p>
+      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
+      <p class="testimonial-text">Marcus did an incredible piece on my forearm. The detail and shading are unreal &mdash; everyone asks where I got it done. Throne is the real deal.</p>
+    </div>
+    <div class="testimonial-card reveal reveal-delay-2">
+      <span class="testimonial-quote">&ldquo;</span>
+      <p class="testimonial-name">RYAN MITCHELL</p>
+      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
+      <p class="testimonial-text">James gave my wife an amazing fine-line piece for her birthday. The studio is clean, calm, and the whole experience felt premium from start to finish.</p>
+    </div>
+    <div class="testimonial-card reveal reveal-delay-1">
+      <span class="testimonial-quote">&ldquo;</span>
+      <p class="testimonial-name">MICHAEL TORRES</p>
+      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
+      <p class="testimonial-text">Had a cover-up done here that completely transformed my old tattoo. The artists truly care about the craft. Will be coming back for my sleeve.</p>
+    </div>
+    <div class="testimonial-card reveal reveal-delay-2">
+      <span class="testimonial-quote">&ldquo;</span>
+      <p class="testimonial-name">CHRIS NAKAMURA</p>
+      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
+      <p class="testimonial-text">Best tattoo studio in Portland, hands down. The bourbon while you wait is a nice touch too. Elijah&rsquo;s color work is next level.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FAQ ═══════════════ -->
+<section class="faq" id="faq">
+  <div class="faq-header">
+    <span class="section-label reveal">COMMON QUESTIONS</span>
+    <h2 class="section-title reveal">Frequently Asked</h2>
+    <div class="ornament reveal">
+      <div class="ornament-diamond"></div>
+    </div>
+  </div>
+  <div class="faq-grid">
+    <div class="faq-item reveal">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <h3>Do I need an appointment, or do you accept walk-ins?</h3>
+        <div class="faq-toggle"></div>
+      </div>
+      <div class="faq-answer">
+        <p>We welcome walk-ins every day, but we highly recommend booking an appointment to guarantee your preferred artist and time slot. You can book online or call us directly.</p>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <h3>How long does a typical tattoo session take?</h3>
+        <div class="faq-toggle"></div>
+      </div>
+      <div class="faq-answer">
+        <p>Session length varies by design complexity. Small pieces take 1&ndash;2 hours, while larger work like sleeves can be 6&ndash;8 hour sessions spread across multiple appointments. We&rsquo;ll discuss timeline during your consultation.</p>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <h3>What forms of payment do you accept?</h3>
+        <div class="faq-toggle"></div>
+      </div>
+      <div class="faq-answer">
+        <p>We accept all major credit cards, debit cards, Apple Pay, Google Pay, and cash. A non-refundable deposit is required at booking to secure your appointment.</p>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <h3>Can I request a specific artist?</h3>
+        <div class="faq-toggle"></div>
+      </div>
+      <div class="faq-answer">
+        <p>Absolutely. Each of our artists has their own specialty and style. We encourage you to browse their portfolios and request whoever resonates with your vision. Book early for preferred availability.</p>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <h3>Do you offer services for minors?</h3>
+        <div class="faq-toggle"></div>
+      </div>
+      <div class="faq-answer">
+        <p>Oregon law requires all tattoo clients to be 18 or older with valid photo ID. We do not make exceptions. We&rsquo;re happy to schedule a consultation for your 18th birthday though!</p>
+      </div>
+    </div>
+    <div class="faq-item reveal">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <h3>What is your cancellation policy?</h3>
+        <div class="faq-toggle"></div>
+      </div>
+      <div class="faq-answer">
+        <p>We require 48 hours notice for cancellations. Late cancellations or no-shows will forfeit their deposit. We understand life happens &mdash; please communicate with us and we&rsquo;ll do our best to accommodate reschedules.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ CONTACT FORM ═══════════════ -->
+<section class="contact-form-section" id="contact-form">
+  <div class="contact-form-header">
+    <span class="section-label reveal">GET IN TOUCH</span>
+    <h2 class="section-title reveal">Send Us a Message</h2>
+    <div class="ornament reveal">
+      <div class="ornament-diamond"></div>
+    </div>
+  </div>
+  <form class="contact-form reveal" onsubmit="handleSubmit(event)">
+    <div class="form-group">
+      <label class="form-label">YOUR NAME</label>
+      <input type="text" class="form-input" placeholder="John Doe" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">EMAIL ADDRESS</label>
+      <input type="email" class="form-input" placeholder="john@example.com" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">PHONE NUMBER</label>
+      <input type="tel" class="form-input" placeholder="(503) 555-0000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">SERVICE INTEREST</label>
+      <select class="form-select" required>
+        <option value="">Select a service...</option>
+        <option value="consultation">Custom Design Consultation</option>
+        <option value="blackgray">Black &amp; Gray Tattoo</option>
+        <option value="realism">Realism Tattoo</option>
+        <option value="coverup">Cover-Up Tattoo</option>
+        <option value="fineline">Fine-Line Tattoo</option>
+        <option value="sleeve">Full Sleeve Session</option>
+        <option value="touchup">Touch-Up Session</option>
+        <option value="color">Color Tattoo</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">YOUR MESSAGE</label>
+      <textarea class="form-textarea" placeholder="Tell us about your idea..." rows="4"></textarea>
+      <p class="form-note">For urgent inquiries, call us directly.</p>
+    </div>
+    <button type="submit" class="form-submit">SEND MESSAGE</button>
+  </form>
+</section>
+
+<!-- ═══════════════ BOOKING CTA ═══════════════ -->
+<section class="booking-cta" id="booking">
+  <span class="section-label reveal">READY?</span>
+  <h2 class="booking-cta-title reveal">Your Story<br>Starts Here</h2>
+  <p class="booking-cta-text reveal">Walk-ins welcome, but appointments are recommended to guarantee your preferred artist and time slot.</p>
+  <div class="booking-cta-buttons reveal">
+    <a href="#" class="btn-primary">BOOK ONLINE</a>
+    <a href="#" class="btn-secondary">GIFT CARDS</a>
+  </div>
+</section>
+
+<!-- ═══════════════ CONTACT INFO ═══════════════ -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <a href="tel:5035550199" class="contact-phone">(503) 555-0199</a>
+    <div class="contact-col">
+      <h3>Hours</h3>
+      <ul class="contact-hours">
+        <li><span>Monday</span><span>9:00 &ndash; 7:00</span></li>
+        <li><span>Tuesday</span><span>9:00 &ndash; 7:00</span></li>
+        <li><span>Wednesday</span><span>9:00 &ndash; 7:00</span></li>
+        <li><span>Thursday</span><span>9:00 &ndash; 8:00</span></li>
+        <li><span>Friday</span><span>9:00 &ndash; 8:00</span></li>
+        <li><span>Saturday</span><span>8:00 &ndash; 6:00</span></li>
+        <li><span>Sunday</span><span>Closed</span></li>
+      </ul>
+    </div>
+    <div class="contact-col">
+      <h3>Find Us</h3>
+      <ul class="contact-info-list">
+        <li>742 NW Everett Street<br>Portland, OR 97209</li>
+        <li><a href="tel:5035550199">(503) 555-0199</a></li>
+        <li><a href="mailto:hello@thronestudio.com">hello@thronestudio.com</a></li>
+        <li><a href="#">@throne.pdx on Instagram</a></li>
+      </ul>
+    </div>
+    <div class="contact-col">
+      <h3>Location</h3>
+      <div class="contact-map">
+        <img src="assets/4414237da4cc306b7ce14c26e2372766bafbff86.png" alt="Map location">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="footer">
+  <p class="footer-copy">&copy; 2026 THRONE STUDIO &middot; PORTLAND, OR</p>
+  <ul class="footer-social">
+    <li><a href="#">Instagram</a></li>
+    <li><a href="#">Facebook</a></li>
+    <li><a href="#">Yelp</a></li>
+  </ul>
+</footer>
+
+<script>
+  // ═══════════ NAV SCROLL EFFECT ═══════════
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // ═══════════ MOBILE MENU ═══════════
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+  });
+
+  // Close menu on link click
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => navLinks.classList.remove('active'));
+  });
+
+  // ═══════════ SCROLL REVEAL ═══════════
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ═══════════ ACCORDION (Services) ═══════════
+  function toggleAccordion(header) {
+    const item = header.closest('.service-item');
+    const wasOpen = item.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.service-item').forEach(i => i.classList.remove('open'));
+
+    // Toggle current
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  // ═══════════ FAQ TOGGLE ═══════════
+  function toggleFaq(question) {
+    const item = question.closest('.faq-item');
+    const wasOpen = item.classList.contains('open');
+
+    // Close all
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+
+    // Toggle current
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  // ═══════════ FORM SUBMISSION ═══════════
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.form-submit');
+    btn.textContent = 'MESSAGE SENT ✓';
+    btn.style.background = '#2d6a4f';
+    btn.style.borderColor = '#2d6a4f';
+    btn.style.color = '#fff';
+    setTimeout(() => {
+      btn.textContent = 'SEND MESSAGE';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      e.target.reset();
+    }, 3000);
+  }
+</script>
+
+</body>
+</html>

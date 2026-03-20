@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "barber-site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "8787", "-s", "."],
+      "port": 8787
+    },
+    {
+      "name": "wedding",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8090", "-d", "wedding"],
+      "port": 8090
+    }
+  ]
+}
