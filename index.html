@@ -1,2615 +1,2552 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>THRONE — Custom Tattoo Studio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;0,6..96,900;1,6..96,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Tenor+Sans&display=swap" rel="stylesheet">
-<style>
-  /* ═══════════════════════════════════════════
-     CSS RESET & VARIABLES — LIGHT MODE
-     ═══════════════════════════════════════════ */
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    /* Light theme palette */
-    --bg-main: #f7f3ea;
-    --bg-dark: #1a1816;
-    --bg-navy: #141b34;
-    --bg-white: #ffffff;
-
-    --gold: #b8935a;
-    --gold-dark: #8b6b3a;
-    --gold-dim: rgba(139, 107, 58, 0.15);
-
-    --text-dark: #141b34;
-    --text-brown: #4a3f33;
-    --text-muted: #6b5e4a;
-    --text-light: #f7f3ea;
-    --text-cream: #e8d5b7;
-
-    --border-light: #e5e1d8;
-    --border-gold: rgba(139, 107, 58, 0.2);
-
-    --font-display: 'Bodoni Moda', serif;
-    --font-body: 'Cormorant Garamond', serif;
-    --font-sans: 'Tenor Sans', sans-serif;
-
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  html {
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: var(--gold) var(--bg-main);
-  }
-
-  body {
-    font-family: var(--font-body);
-    background: var(--bg-main);
-    color: var(--text-brown);
-    overflow-x: hidden;
-    line-height: 1.7;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Subtle grain overlay */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0.02;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
-  }
-
-  /* ═══════════════════════════════════════════
-     UTILITY: ORNAMENTAL DIVIDER
-     ═══════════════════════════════════════════ */
-  .ornament {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin: 24px auto;
-    width: fit-content;
-  }
-
-  .ornament::before,
-  .ornament::after {
-    content: '';
-    width: 60px;
-    height: 1px;
-    background: var(--gold-dark);
-  }
-
-  .ornament-diamond {
-    width: 8px;
-    height: 8px;
-    background: var(--gold-dark);
-    transform: rotate(45deg);
-    flex-shrink: 0;
-  }
-
-  .section-label {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 5px;
-    text-transform: uppercase;
-    color: var(--gold-dark);
-    text-align: center;
-    display: block;
-    margin-bottom: 16px;
-  }
-
-  .section-title {
-    font-family: var(--font-display);
-    font-size: clamp(2.2rem, 5vw, 3rem);
-    font-weight: 700;
-    text-align: center;
-    color: var(--text-dark);
-    line-height: 1.15;
-    margin-bottom: 20px;
-  }
-
-  /* ═══════════════════════════════════════════
-     SCROLL REVEAL ANIMATIONS
-     ═══════════════════════════════════════════ */
-  .reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.9s var(--ease-out-expo), transform 0.9s var(--ease-out-expo);
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .reveal-delay-1 { transition-delay: 0.1s; }
-  .reveal-delay-2 { transition-delay: 0.2s; }
-  .reveal-delay-3 { transition-delay: 0.3s; }
-  .reveal-delay-4 { transition-delay: 0.4s; }
-
-  /* ═══════════════════════════════════════════
-     NAVIGATION
-     ═══════════════════════════════════════════ */
-  .nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    padding: 20px 48px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-dark);
-    transition: background 0.5s, padding 0.5s, backdrop-filter 0.5s;
-  }
-
-  .nav.scrolled {
-    background: rgba(26, 24, 22, 0.95);
-    backdrop-filter: blur(12px);
-    padding: 14px 48px;
-    border-bottom: 1px solid rgba(184, 147, 90, 0.1);
-  }
-
-  .nav-logo {
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--gold);
-    letter-spacing: 6px;
-    text-transform: uppercase;
-    text-decoration: none;
-  }
-
-  .nav-links {
-    display: flex;
-    gap: 36px;
-    list-style: none;
-  }
-
-  .nav-links a {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-cream);
-    text-decoration: none;
-    position: relative;
-    padding-bottom: 4px;
-    transition: color 0.3s;
-  }
-
-  .nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background: var(--gold);
-    transition: width 0.4s var(--ease-out-expo);
-  }
-
-  .nav-links a:hover { color: var(--gold); }
-  .nav-links a:hover::after { width: 100%; }
-
-  .nav-book-btn {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--bg-dark);
-    background: var(--gold);
-    padding: 10px 24px;
-    text-decoration: none;
-    border: 1px solid var(--gold);
-    transition: all 0.4s var(--ease-out-expo);
-    font-weight: 500;
-  }
-
-  .nav-book-btn:hover {
-    background: transparent;
-    color: var(--gold);
-  }
-
-  .nav-toggle {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-  }
-  .nav-toggle span {
-    width: 24px;
-    height: 1.5px;
-    background: var(--text-cream);
-    transition: all 0.3s;
-  }
-
-  /* ═══════════════════════════════════════════
-     HERO SECTION
-     ═══════════════════════════════════════════ */
-  .hero {
-    position: relative;
-    height: 100vh;
-    min-height: 700px;
-    max-height: 900px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    overflow: hidden;
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-  }
-
-  .hero-bg-image {
-    position: absolute;
-    inset: 0;
-    background-image: url('assets/2f8fa953190d7b1298ccfe29d4a0e87eda2c1ee9.png');
-    background-size: cover;
-    background-position: center;
-    filter: blur(12px);
-    transform: scale(1.05);
-  }
-
-  .hero-bg-gradient {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(14, 21, 14, 1) 0%,
-      rgba(247, 243, 234, 0) 19%,
-      rgba(26, 24, 22, 0) 21%,
-      rgba(26, 24, 22, 0.6) 48%,
-      rgb(26, 24, 22) 100%
-    );
-  }
-
-  .hero-bg-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(17, 24, 39, 0.55);
-  }
-
-  .hero-corner {
-    position: absolute;
-    width: 120px;
-    height: 120px;
-    border-color: var(--gold-dark);
-    border-style: solid;
-    opacity: 0.25;
-    z-index: 2;
-  }
-  .hero-corner--tl { top: 80px; left: 80px; border-width: 1px 0 0 1px; }
-  .hero-corner--tr { top: 80px; right: 80px; border-width: 1px 1px 0 0; }
-  .hero-corner--bl { bottom: 80px; left: 80px; border-width: 0 0 1px 1px; }
-  .hero-corner--br { bottom: 80px; right: 80px; border-width: 0 1px 1px 0; }
-
-  .hero-content {
-    position: relative;
-    z-index: 3;
-    max-width: 800px;
-    padding: 0 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .hero-est {
-    font-family: var(--font-sans);
-    font-size: 16px;
-    letter-spacing: 1px;
-    color: var(--text-light);
-    margin-bottom: 28px;
-    opacity: 0;
-    animation: fadeUp 1s var(--ease-out-expo) 0.3s forwards;
-  }
-
-  .hero-title {
-    font-family: var(--font-display);
-    font-size: clamp(4rem, 10vw, 7.5rem);
-    font-weight: 700;
-    line-height: 0.9;
-    color: var(--text-light);
-    letter-spacing: -2px;
-    margin-bottom: 8px;
-    opacity: 0;
-    animation: fadeUp 1.2s var(--ease-out-expo) 0.5s forwards;
-  }
-
-  .hero-subtitle-main {
-    font-family: var(--font-sans);
-    font-size: 36px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 0;
-    opacity: 0;
-    animation: fadeUp 1s var(--ease-out-expo) 0.7s forwards;
-  }
-
-  .hero-divider {
-    width: 60px;
-    height: 1px;
-    background: var(--gold-dark);
-    margin: 32px auto;
-    opacity: 0;
-    animation: fadeUp 1s var(--ease-out-expo) 0.8s forwards;
-  }
-
-  .hero-tagline {
-    font-family: var(--font-sans);
-    font-size: 18px;
-    line-height: 1.6;
-    color: var(--gold);
-    max-width: 480px;
-    margin: 0 auto 40px;
-    opacity: 0;
-    animation: fadeUp 1s var(--ease-out-expo) 1s forwards;
-  }
-
-  .hero-cta-group {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 1s var(--ease-out-expo) 1.2s forwards;
-  }
-
-  .btn-primary {
-    font-family: var(--font-sans);
-    font-size: 12px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    padding: 16px 40px;
-    background: var(--gold);
-    color: var(--bg-dark);
-    border: 1px solid var(--gold);
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.4s var(--ease-out-expo);
-  }
-
-  .btn-primary:hover {
-    background: transparent;
-    color: var(--gold);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(184, 147, 90, 0.3);
-  }
-
-  .btn-secondary {
-    font-family: var(--font-sans);
-    font-size: 12px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    padding: 16px 40px;
-    background: transparent;
-    color: var(--text-light);
-    border: 1px solid rgba(247, 243, 234, 0.3);
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.4s var(--ease-out-expo);
-    opacity: 0.7;
-  }
-
-  .btn-secondary:hover {
-    border-color: rgba(247, 243, 234, 0.6);
-    opacity: 1;
-    transform: translateY(-2px);
-  }
-
-  .hero-scroll {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    z-index: 3;
-    opacity: 0;
-    animation: fadeUp 1s var(--ease-out-expo) 1.6s forwards;
-  }
-
-  .hero-scroll span {
-    font-family: var(--font-sans);
-    font-size: 9px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: rgba(247, 243, 234, 0.4);
-  }
-
-  .hero-scroll-line {
-    width: 1px;
-    height: 40px;
-    background: linear-gradient(to bottom, var(--gold), transparent);
-    animation: scrollPulse 2s ease-in-out infinite;
-  }
-
-  @keyframes scrollPulse {
-    0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
-    50% { opacity: 1; transform: scaleY(1); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ═══════════════════════════════════════════
-     FEATURES SECTION
-     ═══════════════════════════════════════════ */
-  .features {
-    padding: 120px 128px;
-    position: relative;
-    background: var(--bg-main);
-  }
-
-  .features-header {
-    max-width: 600px;
-    margin: 0 auto 60px;
-  }
-
-  .features-grid {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-  }
-
-  .feature-card {
-    background: var(--bg-white);
-    border: 1px solid var(--gold-dark);
-    padding: 48px 36px;
-    position: relative;
-    transition: all 0.5s var(--ease-out-expo);
-    overflow: hidden;
-    opacity: 0.85;
-  }
-
-  .feature-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--gold-dark);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.5s var(--ease-out-expo);
-  }
-
-  .feature-card:hover::before {
-    transform: scaleX(1);
-  }
-
-  .feature-card:hover {
-    opacity: 1;
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(139, 107, 58, 0.1);
-  }
-
-  .feature-icon {
-    width: 36px;
-    height: 36px;
-    margin-bottom: 24px;
-    display: block;
-    color: var(--gold-dark);
-  }
-
-  .feature-icon svg {
-    width: 36px;
-    height: 36px;
-    stroke: var(--gold-dark);
-    stroke-width: 1.2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .feature-title {
-    font-family: var(--font-sans);
-    font-size: 20px;
-    font-weight: 400;
-    color: var(--text-brown);
-    margin-bottom: 12px;
-  }
-
-  .feature-desc {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-brown);
-    line-height: 1.7;
-  }
-
-  /* ═══════════════════════════════════════════
-     ABOUT SECTION
-     ═══════════════════════════════════════════ */
-  .about {
-    padding: 120px 128px;
-    position: relative;
-    background: var(--bg-main);
-  }
-
-  .about-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 480px 1fr;
-    gap: 80px;
-    align-items: start;
-  }
-
-  .about-image-frame {
-    position: relative;
-    height: 620px;
-    overflow: hidden;
-  }
-
-  .about-image-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .about-image-frame::before {
-    content: '';
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    border: 1px solid var(--gold);
-    opacity: 0.3;
-    z-index: 2;
-    pointer-events: none;
-  }
-
-  .about-text .section-label,
-  .about-text .section-title { text-align: left; }
-
-  .about-text p {
-    font-family: var(--font-sans);
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--text-brown);
-    margin-bottom: 16px;
-    line-height: 1.9;
-    max-width: 480px;
-    opacity: 0.9;
-  }
-
-  .about-stats {
-    display: flex;
-    gap: 48px;
-    margin-top: 40px;
-    padding: 32px;
-    background: var(--bg-white);
-    border: 1px solid var(--border-light);
-    position: relative;
-  }
-
-  .about-stats::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--gold-dark);
-  }
-
-  .about-stat-num {
-    font-family: var(--font-display);
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--gold-dark);
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-
-  .about-stat-label {
-    font-family: var(--font-sans);
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  /* ═══════════════════════════════════════════
-     SERVICES SECTION
-     ═══════════════════════════════════════════ */
-  .services {
-    padding: 120px 200px;
-    background: var(--bg-main);
-    position: relative;
-  }
-
-  .services-header {
-    max-width: 600px;
-    margin: 0 auto 60px;
-  }
-
-  .services-grid {
-    max-width: 960px;
-    margin: 0 auto;
-  }
-
-  .service-item {
-    border-bottom: 1px solid var(--border-light);
-    transition: background 0.4s var(--ease-out-expo);
-  }
-
-  .service-item:first-child {
-    border-top: 1px solid var(--border-light);
-  }
-
-  .service-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 24px 0;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.3s;
-  }
-
-  .service-header:hover {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .service-name {
-    font-family: var(--font-sans);
-    font-size: 20px;
-    font-weight: 400;
-    color: var(--text-dark);
-    transition: color 0.3s;
-  }
-
-  .service-header:hover .service-name {
-    color: var(--gold-dark);
-  }
-
-  .service-meta {
-    text-align: right;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .service-duration {
-    font-family: var(--font-sans);
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-brown);
-    opacity: 0.5;
-  }
-
-  .service-price {
-    font-family: var(--font-sans);
-    font-size: 20px;
-    font-weight: 400;
-    color: var(--gold-dark);
-    min-width: 80px;
-    text-align: right;
-  }
-
-  .service-toggle {
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: transform 0.4s var(--ease-out-expo);
-    margin-left: 16px;
-  }
-
-  .service-toggle svg {
-    width: 12px;
-    height: 12px;
-    stroke: var(--gold-dark);
-    stroke-width: 1.5;
-    fill: none;
-  }
-
-  .service-item.open .service-toggle {
-    transform: rotate(180deg);
-  }
-
-  /* Accordion panel */
-  .service-details {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s var(--ease-out-expo);
-  }
-
-  .service-item.open .service-details {
-    max-height: 400px;
-  }
-
-  .service-details-inner {
-    padding: 0 0 28px 0;
-  }
-
-  .service-details-meta {
-    display: none;
-  }
-
-  .service-checklist {
-    list-style: none;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 32px;
-  }
-
-  .service-checklist li {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--text-brown);
-    padding-left: 28px;
-    position: relative;
-    line-height: 1.6;
-    opacity: 0.8;
-  }
-
-  .service-checklist li::before {
-    content: '✓';
-    position: absolute;
-    left: 0;
-    color: var(--gold-dark);
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  /* ═══════════════════════════════════════════
-     GALLERY SECTION
-     ═══════════════════════════════════════════ */
-  .gallery {
-    padding: 120px 128px;
-    background: var(--bg-main);
-    position: relative;
-  }
-
-  .gallery-header {
-    max-width: 600px;
-    margin: 0 auto 60px;
-  }
-
-  .gallery-grid {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: 300px;
-    gap: 12px;
-  }
-
-  .gallery-item {
-    position: relative;
-    overflow: hidden;
-    cursor: pointer;
-  }
-
-  .gallery-item:nth-child(1) {
-    grid-column: span 2;
-    grid-row: span 1;
-  }
-
-  .gallery-item:nth-child(4) {
-    grid-column: span 2;
-    grid-row: span 1;
-  }
-
-  .gallery-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.8s var(--ease-out-expo);
-  }
-
-  .gallery-item:hover img {
-    transform: scale(1.05);
-  }
-
-  .gallery-item-label {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 24px;
-    background: linear-gradient(transparent, rgba(26, 24, 22, 0.8));
-    transform: translateY(100%);
-    transition: transform 0.5s var(--ease-out-expo);
-  }
-
-  .gallery-item:hover .gallery-item-label {
-    transform: translateY(0);
-  }
-
-  .gallery-item-label span {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-cream);
-  }
-
-  /* ═══════════════════════════════════════════
-     TEAM SECTION
-     ═══════════════════════════════════════════ */
-  .team {
-    padding: 120px 128px;
-    background: var(--bg-main);
-    position: relative;
-  }
-
-  .team-header {
-    max-width: 600px;
-    margin: 0 auto 60px;
-  }
-
-  .team-grid {
-    max-width: 960px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-  }
-
-  .team-card {
-    text-align: center;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .team-photo {
-    width: 100%;
-    height: 370px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .team-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.8s var(--ease-out-expo), filter 0.5s;
-    filter: grayscale(20%);
-  }
-
-  .team-card:hover .team-photo img {
-    transform: scale(1.04);
-    filter: grayscale(0%);
-  }
-
-  /* Differentiate identical photos */
-  .team-card:nth-child(1) .team-photo img {
-    object-position: center 15%;
-  }
-
-  .team-card:nth-child(2) .team-photo img {
-    object-position: center 30%;
-    transform: scaleX(-1);
-  }
-
-  .team-card:nth-child(2):hover .team-photo img {
-    transform: scaleX(-1) scale(1.04);
-  }
-
-  .team-card:nth-child(3) .team-photo img {
-    object-position: center 25%;
-    filter: grayscale(30%) contrast(1.05);
-  }
-
-  .team-card:nth-child(3):hover .team-photo img {
-    filter: grayscale(0%) contrast(1);
-  }
-
-  .team-name {
-    font-family: var(--font-sans);
-    font-size: 22px;
-    font-weight: 400;
-    color: var(--text-dark);
-    margin-top: 24px;
-    margin-bottom: 4px;
-  }
-
-  .team-role {
-    font-family: var(--font-sans);
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--gold-dark);
-    margin-bottom: 12px;
-  }
-
-  .team-bio {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--text-brown);
-    line-height: 1.7;
-    opacity: 0.8;
-    max-width: 280px;
-    margin: 0 auto;
-  }
-
-  /* ═══════════════════════════════════════════
-     TESTIMONIALS SECTION (Dark)
-     ═══════════════════════════════════════════ */
-  .testimonials {
-    padding: 120px 128px;
-    background: var(--bg-navy);
-    position: relative;
-  }
-
-  .testimonials .section-label { color: var(--gold); }
-  .testimonials .section-title { color: var(--text-light); }
-
-  .testimonials-grid {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 32px;
-  }
-
-  .testimonial-card {
-    border: 1px solid rgba(184, 147, 90, 0.15);
-    padding: 48px 40px;
-    position: relative;
-    transition: all 0.5s var(--ease-out-expo);
-    background: rgba(184, 147, 90, 0.04);
-  }
-
-  .testimonial-card:hover {
-    border-color: rgba(184, 147, 90, 0.3);
-    transform: translateY(-4px);
-    background: rgba(184, 147, 90, 0.08);
-  }
-
-  .testimonial-name {
-    font-family: var(--font-sans);
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-cream);
-    margin-bottom: 8px;
-  }
-
-  .testimonial-stars {
-    color: var(--gold);
-    font-size: 14px;
-    letter-spacing: 4px;
-    margin-bottom: 20px;
-  }
-
-  .testimonial-text {
-    font-family: var(--font-body);
-    font-size: 17px;
-    font-weight: 300;
-    font-style: italic;
-    color: rgba(232, 213, 183, 0.7);
-    line-height: 1.8;
-  }
-
-  .testimonial-quote {
-    font-family: var(--font-display);
-    font-size: 90px;
-    color: var(--gold);
-    opacity: 0.25;
-    position: absolute;
-    top: 12px;
-    right: 28px;
-    line-height: 1;
-  }
-
-  /* ═══════════════════════════════════════════
-     FAQ SECTION
-     ═══════════════════════════════════════════ */
-  .faq {
-    padding: 120px 200px;
-    background: var(--bg-main);
-    position: relative;
-  }
-
-  .faq-header {
-    max-width: 600px;
-    margin: 0 auto 60px;
-  }
-
-  .faq-grid {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .faq-item {
-    position: relative;
-    border-bottom: 1px solid var(--border-light);
-  }
-
-  .faq-item:first-child {
-    border-top: 1px solid var(--border-light);
-  }
-
-  .faq-question {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 24px 0;
-    cursor: pointer;
-    user-select: none;
-    gap: 20px;
-  }
-
-  .faq-question h3 {
-    font-family: var(--font-sans);
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--text-dark);
-    transition: color 0.3s;
-  }
-
-  .faq-question:hover h3 {
-    color: var(--gold-dark);
-  }
-
-  .faq-toggle {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border: 1px solid var(--border-light);
-    border-radius: 50%;
-    transition: all 0.4s var(--ease-out-expo);
-    position: relative;
-  }
-
-  .faq-toggle::before,
-  .faq-toggle::after {
-    content: '';
-    position: absolute;
-    background: var(--gold-dark);
-    transition: transform 0.4s var(--ease-out-expo);
-  }
-
-  .faq-toggle::before {
-    width: 12px;
-    height: 1.5px;
-  }
-
-  .faq-toggle::after {
-    width: 1.5px;
-    height: 12px;
-  }
-
-  .faq-item.open .faq-toggle {
-    border-color: var(--gold-dark);
-    background: var(--gold-dim);
-  }
-
-  .faq-item.open .faq-toggle::after {
-    transform: rotate(90deg);
-  }
-
-  .faq-question:hover .faq-toggle {
-    border-color: var(--gold-dark);
-  }
-
-  .faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s var(--ease-out-expo);
-  }
-
-  .faq-item.open .faq-answer {
-    max-height: 300px;
-  }
-
-  .faq-answer p {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--text-brown);
-    line-height: 1.8;
-    padding-bottom: 24px;
-    opacity: 0.8;
-  }
-
-  /* ═══════════════════════════════════════════
-     CONTACT FORM SECTION
-     ═══════════════════════════════════════════ */
-  .contact-form-section {
-    padding: 120px 200px;
-    background: var(--bg-main);
-    position: relative;
-  }
-
-  .contact-form-header {
-    max-width: 600px;
-    margin: 0 auto 60px;
-  }
-
-  .contact-form {
-    max-width: 600px;
-    margin: 0 auto;
-    background: var(--bg-white);
-    padding: 48px;
-    border: 1px solid var(--border-light);
-    box-shadow: 0 4px 24px rgba(139, 107, 58, 0.06);
-  }
-
-  .form-group {
-    margin-bottom: 24px;
-  }
-
-  .form-label {
-    display: block;
-    font-family: var(--font-sans);
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--text-brown);
-    margin-bottom: 10px;
-  }
-
-  .form-input,
-  .form-select,
-  .form-textarea {
-    width: 100%;
-    padding: 14px 0;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border-light);
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--text-dark);
-    outline: none;
-    transition: border-color 0.3s;
-  }
-
-  .form-input::placeholder,
-  .form-textarea::placeholder {
-    color: var(--text-muted);
-    opacity: 0.5;
-  }
-
-  .form-input:focus,
-  .form-select:focus,
-  .form-textarea:focus {
-    border-bottom-color: var(--gold-dark);
-  }
-
-  .form-select {
-    appearance: none;
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b6b3a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0 center;
-  }
-
-  .form-textarea {
-    resize: vertical;
-    min-height: 100px;
-    border: 1px solid var(--border-light);
-    padding: 14px;
-  }
-
-  .form-note {
-    font-family: var(--font-sans);
-    font-size: 12px;
-    color: var(--text-muted);
-    opacity: 0.6;
-    margin-top: 8px;
-  }
-
-  .form-submit {
-    font-family: var(--font-sans);
-    font-size: 12px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    padding: 16px 40px;
-    background: var(--gold-dark);
-    color: var(--bg-white);
-    border: 1px solid var(--gold-dark);
-    cursor: pointer;
-    transition: all 0.4s var(--ease-out-expo);
-    margin-top: 16px;
-  }
-
-  .form-submit:hover {
-    background: transparent;
-    color: var(--gold-dark);
-    transform: translateY(-2px);
-  }
-
-  /* ═══════════════════════════════════════════
-     BOOKING CTA SECTION (Dark)
-     ═══════════════════════════════════════════ */
-  .booking-cta {
-    padding: 120px 48px;
-    background: var(--bg-navy);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .booking-cta .section-label { color: var(--gold); }
-
-  .booking-cta-title {
-    font-family: var(--font-display);
-    font-size: clamp(3rem, 7vw, 5rem);
-    font-weight: 700;
-    color: var(--text-light);
-    line-height: 1.1;
-    margin-bottom: 24px;
-  }
-
-  .booking-cta-text {
-    font-family: var(--font-sans);
-    font-size: 15px;
-    color: rgba(232, 213, 183, 0.6);
-    max-width: 500px;
-    margin: 0 auto 40px;
-    line-height: 1.8;
-  }
-
-  .booking-cta-buttons {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* ═══════════════════════════════════════════
-     CONTACT / INFO SECTION (Dark)
-     ═══════════════════════════════════════════ */
-  .contact {
-    padding: 120px 128px;
-    background: var(--bg-dark);
-    position: relative;
-  }
-
-  .contact-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 60px;
-  }
-
-  .contact-phone {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--gold);
-    margin-bottom: 32px;
-    grid-column: 1 / -1;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-  }
-
-  .contact-col h3 {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-cream);
-    margin-bottom: 24px;
-  }
-
-  .contact-hours {
-    list-style: none;
-  }
-
-  .contact-hours li {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--font-sans);
-    font-size: 13px;
-    color: rgba(232, 213, 183, 0.5);
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(184, 147, 90, 0.06);
-  }
-
-  .contact-hours li span:last-child {
-    color: var(--text-cream);
-  }
-
-  .contact-info-list {
-    list-style: none;
-  }
-
-  .contact-info-list li {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: rgba(232, 213, 183, 0.6);
-    margin-bottom: 12px;
-    line-height: 1.6;
-  }
-
-  .contact-info-list a {
-    color: var(--gold);
-    text-decoration: none;
-    transition: color 0.3s;
-  }
-
-  .contact-info-list a:hover { color: var(--text-cream); }
-
-  .contact-map {
-    width: 100%;
-    height: 240px;
-    overflow: hidden;
-    margin-top: 16px;
-    position: relative;
-    border: 1px solid rgba(184, 147, 90, 0.15);
-    transition: border-color 0.3s;
-    cursor: pointer;
-  }
-
-  .contact-map:hover {
-    border-color: rgba(184, 147, 90, 0.4);
-  }
-
-  .contact-map img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.8;
-    transition: opacity 0.3s;
-  }
-
-  .contact-map:hover img {
-    opacity: 1;
-  }
-
-  /* ═══════════════════════════════════════════
-     FOOTER
-     ═══════════════════════════════════════════ */
-  .footer {
-    padding: 40px 48px;
-    background: var(--bg-dark);
-    border-top: 1px solid rgba(184, 147, 90, 0.12);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .footer-copy {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: rgba(232, 213, 183, 0.3);
-  }
-
-  .footer-social {
-    display: flex;
-    gap: 24px;
-    list-style: none;
-  }
-
-  .footer-social a {
-    font-family: var(--font-sans);
-    font-size: 10px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: rgba(232, 213, 183, 0.3);
-    text-decoration: none;
-    transition: color 0.3s;
-  }
-
-  .footer-social a:hover { color: var(--gold); }
-
-  /* ═══════════════════════════════════════════
-     RESPONSIVE
-     ═══════════════════════════════════════════ */
-  /* ═══════════════════════════════════════════
-     TABLET (max-width: 1024px)
-     ═══════════════════════════════════════════ */
-  @media (max-width: 1024px) {
-    .features,
-    .about,
-    .gallery,
-    .team,
-    .testimonials,
-    .contact {
-      padding-left: 48px;
-      padding-right: 48px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emma & Karl — We're Getting Married</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================
+       CSS CUSTOM PROPERTIES
+       ======================================== */
+    :root {
+      /* Colors — Pastel & Light Palette */
+      --cream: #FBF7F2;
+      --linen: #F3ECE4;
+      --blush: #EDE0D4;
+      --champagne: #C8A882;
+      --dusty-rose: #C4A69A;
+      --sage: #A8B5A0;
+      --charcoal: #2C2420;
+      --warm-gray: #6B5E54;
+      --light-gray: #9B8E82;
+      --white: #FFFFFF;
+      --overlay: rgba(0, 0, 0, 0.35);
+
+      /* Spacing (Figma variables) */
+      --space-0: 0px;
+      --space-px: 1px;
+      --space-0-5: 2px;
+      --space-1: 4px;
+      --space-1-5: 6px;
+      --space-2: 8px;
+      --space-2-5: 10px;
+      --space-3: 12px;
+      --space-3-5: 14px;
+      --space-4: 16px;
+      --space-4-5: 18px;
+      --space-5: 20px;
+      --space-5-5: 22px;
+      --space-6: 24px;
+      --space-7: 28px;
+      --space-8: 32px;
+      --space-9: 36px;
+      --space-10: 40px;
+      --space-11: 44px;
+      --space-12: 48px;
+      --space-13: 52px;
+      --space-14: 56px;
+      --space-15: 60px;
+      --space-16: 64px;
+      --space-17: 68px;
+      --space-18: 72px;
+      --space-20: 80px;
+      --space-22: 88px;
+      --space-24: 96px;
+
+      /* Border Radius — single value across the site */
+      --radius: 8px;
+      --radius-full: 999px;
+
+      /* Type Scale (8px grid) */
+      --text-body: 16px;
+      --text-lg: 24px;
+      --text-xl: 32px;
+      --text-2xl: 40px;
+      --text-3xl: 48px;
+      --text-4xl: 64px;
+      --text-5xl: 80px;
+      --text-6xl: 96px;
+      --text-hero: 128px;
+
+      /* Fonts */
+      --font-heading: 'Cormorant Garamond', 'Georgia', serif;
+      --font-body: 'Outfit', 'Helvetica Neue', sans-serif;
     }
 
-    .services,
-    .faq,
-    .contact-form-section {
-      padding-left: 48px;
-      padding-right: 48px;
-    }
-
-    .about-inner {
-      grid-template-columns: 1fr;
-      gap: 48px;
-    }
-
-    .about-image-frame {
-      height: 400px;
-      max-width: 420px;
-    }
-
-    .features-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .team-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .testimonials-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .contact-inner {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  /* ═══════════════════════════════════════════
-     MOBILE (max-width: 768px)
-     ═══════════════════════════════════════════
-     TYPE SCALE (6 sizes only):
-       H1:             40px  — hero title, booking CTA title
-       H2:             32px  — section titles
-       H3:             24px  — feature titles, team names, service names, contact phone
-       Body 1:         18px  — about body, hero subtitle, service prices, testimonial text
-       Body 2:         16px  — feature desc, about body 2, FAQ questions, checklist, team bio, hero tagline, form inputs
-       Caption:        14px  — section labels, nav links, buttons, durations, stat labels, roles, FAQ answers, footer, gallery labels, nav logo
-     ═══════════════════════════════════════════ */
-  @media (max-width: 768px) {
-
-    /* --- NAV --- */
-    .nav {
-      padding: 14px 20px;
-    }
-
-    .nav.scrolled {
-      padding: 12px 20px;
-    }
-
-    .nav-logo {
-      font-size: 14px;       /* Caption */
-      letter-spacing: 4px;
-    }
-
-    .nav-links { display: none; }
-    .nav-toggle { display: flex; }
-    /* Desktop: hide the in-menu book button */
-  .nav-menu-book { display: none; }
-
-    .nav-book-btn {
-      font-size: 14px;       /* Caption */
-      letter-spacing: 2px;
-      padding: 8px 16px;
-    }
-
-    /* Hide top-bar book button on mobile */
-    .nav > .nav-book-btn {
-      display: none;
-    }
-
-    .nav-links.active {
-      display: flex;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      flex-direction: column;
-      background: var(--bg-dark);
-      padding: 24px 20px;
-      gap: 20px;
-      border-bottom: 1px solid rgba(184, 147, 90, 0.1);
-    }
-
-    /* Show book button inside open menu */
-    .nav-links.active .nav-menu-book {
-      display: block;
-      margin-top: 4px;
-    }
-
-    .nav-book-btn--menu {
-      display: block;
-      width: 100%;
-      text-align: center;
-      padding: 14px 20px;
-      font-size: 14px;
-      letter-spacing: 3px;
-    }
-
-    .nav-links a {
-      font-size: 14px;       /* Caption */
-    }
-
-    /* --- HERO --- */
-    .hero {
-      min-height: 600px;
-      max-height: 100vh;
-    }
-
-    .hero-est {
-      font-size: 14px;       /* Caption */
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-    }
-
-    .hero-title {
-      font-size: 40px;       /* H1 */
-      letter-spacing: -1px;
-    }
-
-    .hero-subtitle-main {
-      font-size: 18px;       /* Body 1 */
-      letter-spacing: 3px;
-    }
-
-    .hero-tagline {
-      font-size: 16px;       /* Body 2 */
-      padding: 0 12px;
-    }
-
-    .hero-divider {
-      margin: 24px auto;
-    }
-
-    .hero-cta-group {
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
+    /* ========================================
+       RESET & BASE
+       ======================================== */
+    *, *::before, *::after {
+      margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
-    .btn-primary,
-    .btn-secondary {
-      width: 100%;
-      max-width: 280px;
-      text-align: center;
-      padding: 14px 32px;
-      font-size: 14px;       /* Caption */
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
     }
 
-    .hero-corner { display: none; }
-
-    .hero-scroll {
-      bottom: 24px;
-      left: 0;
-      right: 0;
-      transform: none;
-      width: 100%;
-      align-items: center;
+    body {
+      font-family: var(--font-body);
+      font-weight: 400;
+      color: var(--charcoal);
+      background-color: var(--cream);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    .hero-scroll span {
-      font-size: 14px;       /* Caption */
-      letter-spacing: 3px;
-    }
-
-    /* --- SECTION SHARED --- */
-    .section-label {
-      font-size: 14px;       /* Caption */
-      letter-spacing: 4px;
-    }
-
-    .section-title {
-      font-size: 32px;       /* H2 */
-    }
-
-    /* --- FEATURES --- */
-    .features {
-      padding: 64px 20px;
-    }
-
-    .features-header {
-      margin-bottom: 40px;
-    }
-
-    .features-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-
-    .feature-card {
-      padding: 32px 24px;
-    }
-
-    .feature-title { font-size: 24px; }  /* H3 */
-    .feature-desc { font-size: 16px; }  /* Body 2 */
-
-    /* --- ABOUT --- */
-    .about {
-      padding: 64px 20px;
-    }
-
-    .about-inner {
-      grid-template-columns: 1fr;
-      gap: 40px;
-    }
-
-    .about-image-frame {
-      height: 320px;
+    img {
+      display: block;
       max-width: 100%;
-    }
-
-    .about-text p {
-      font-size: 16px;       /* Body 2 */
-      max-width: 100%;
-    }
-
-    .about-stats {
-      gap: 32px;
-      padding: 24px 20px;
-      margin-top: 32px;
-    }
-
-    .about-stat-num { font-size: 32px; }   /* H2 */
-    .about-stat-label { font-size: 14px; letter-spacing: 2px; }  /* Caption */
-
-    /* --- SERVICES --- */
-    .services {
-      padding: 64px 20px;
-    }
-
-    .services-header {
-      margin-bottom: 40px;
-    }
-
-    .service-header {
-      padding: 20px 0;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .service-name {
-      font-size: 18px;       /* Body 1 */
-      flex: 1;
-      min-width: 0;
-    }
-
-    .service-meta {
-      gap: 12px;
-    }
-
-    .service-duration {
-      display: none;         /* Hidden in header on mobile */
-    }
-
-    .service-details-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .service-details-meta span {
-      font-family: var(--font-sans);
-      font-size: 14px;       /* Caption */
-      letter-spacing: 1px;
-      color: var(--text-muted);
-    }
-
-    .service-price {
-      font-size: 18px;       /* Body 1 */
-      min-width: 60px;
-    }
-
-    .service-checklist {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    .service-checklist li {
-      font-size: 16px;       /* Body 2 */
-    }
-
-    /* --- GALLERY --- */
-    .gallery {
-      padding: 64px 20px;
-    }
-
-    .gallery-header {
-      margin-bottom: 40px;
-    }
-
-    .gallery-grid {
-      grid-template-columns: 1fr 1fr;
-      grid-auto-rows: 200px;
-      gap: 8px;
-    }
-
-    .gallery-item:nth-child(1),
-    .gallery-item:nth-child(4) {
-      grid-column: span 2;
       height: auto;
     }
 
-    .gallery-item-label {
-      transform: translateY(0);
-      background: linear-gradient(transparent 30%, rgba(26, 24, 22, 0.7));
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: opacity 0.3s ease;
     }
 
-    .gallery-item-label span {
-      font-size: 14px;       /* Caption */
+    a:hover {
+      opacity: 0.7;
     }
 
-    /* --- TEAM --- */
+    button {
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-body);
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    /* ========================================
+       UTILITIES
+       ======================================== */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding-left: var(--space-12);
+      padding-right: var(--space-12);
+    }
+
+    .section-label {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--champagne);
+      margin-bottom: var(--space-4);
+    }
+
+    .section-heading {
+      font-family: var(--font-heading);
+      font-size: var(--text-4xl);
+      font-weight: 300;
+      line-height: 1.125;
+      color: var(--charcoal);
+      margin-bottom: var(--space-6);
+    }
+
+    .section-subtext {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      line-height: 1.6;
+      color: var(--warm-gray);
+      max-width: 600px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4) var(--space-8);
+      background-color: var(--champagne);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--charcoal);
+      opacity: 1;
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4) var(--space-8);
+      background-color: transparent;
+      color: var(--charcoal);
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--charcoal);
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline:hover {
+      background-color: var(--charcoal);
+      color: var(--white);
+      opacity: 1;
+    }
+
+    .btn-white {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4) var(--space-8);
+      background-color: var(--white);
+      color: var(--charcoal);
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      border: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-white:hover {
+      background-color: var(--cream);
+      opacity: 1;
+    }
+
+    .divider {
+      width: 48px;
+      height: 1px;
+      background-color: var(--champagne);
+      margin: var(--space-6) 0;
+    }
+
+    /* ========================================
+       1. HEADER
+       ======================================== */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-6) var(--space-12);
+      transition: background-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .header.scrolled {
+      background-color: rgba(251, 247, 242, 0.95);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 1px 0 var(--blush);
+    }
+
+    .header-nav {
+      display: flex;
+      gap: var(--space-8);
+    }
+
+    .header-nav a {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 400;
+      color: var(--white);
+      transition: opacity 0.3s ease;
+    }
+
+    .header.scrolled .header-nav a {
+      color: var(--charcoal);
+    }
+
+    .header-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .header-logo-monogram {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: var(--text-body);
+      font-weight: 400;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
+
+    .header.scrolled .header-logo-monogram {
+      border-color: var(--charcoal);
+      color: var(--charcoal);
+    }
+
+    .header-logo-text {
+      font-family: var(--font-body);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+
+    .header.scrolled .header-logo-text {
+      color: var(--charcoal);
+    }
+
+    .header-cta .btn-white {
+      font-weight: 500;
+    }
+
+    .header.scrolled .header-cta .btn-white {
+      background-color: var(--champagne);
+      color: var(--white);
+    }
+
+    /* ========================================
+       2. BANNER / HERO
+       ======================================== */
+    .banner {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 900px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .banner-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1600&h=1000&fit=crop&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .banner-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: var(--overlay);
+    }
+
+    .banner-content {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 var(--space-12) var(--space-16);
+    }
+
+    .banner-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: var(--space-4);
+    }
+
+    .banner-label {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 400;
+      color: var(--white);
+      letter-spacing: 0.02em;
+    }
+
+    .banner-names {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .banner-name {
+      font-family: var(--font-heading);
+      font-size: clamp(80px, 9.5vw, 160px);
+      font-weight: 300;
+      line-height: 0.85;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+
+    /* ========================================
+       3. FEATURE
+       ======================================== */
+    .feature {
+      padding: var(--space-24) 0;
+      background-color: var(--cream);
+    }
+
+    .feature-header {
+      text-align: center;
+      margin-bottom: var(--space-16);
+    }
+
+    .feature-header .section-subtext {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
+    }
+
+    .feature-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius);
+      background-color: var(--linen);
+    }
+
+    .feature-card-image {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+    }
+
+    .feature-card-body {
+      padding: var(--space-8);
+    }
+
+    .feature-card-title {
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      font-weight: 500;
+      margin-bottom: var(--space-2);
+      color: var(--charcoal);
+    }
+
+    .feature-card-text {
+      font-size: var(--text-body);
+      color: var(--warm-gray);
+      line-height: 1.5;
+    }
+
+    /* ========================================
+       4. TEXT SECTION
+       ======================================== */
+    .text-section {
+      padding: var(--space-24) 0;
+      background-color: var(--linen);
+    }
+
+    .text-section-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .text-section-heading {
+      font-family: var(--font-heading);
+      font-size: var(--text-3xl);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.2;
+      color: var(--charcoal);
+      margin-bottom: var(--space-8);
+    }
+
+    .text-section-body {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      line-height: 1.8;
+      color: var(--warm-gray);
+      margin-bottom: var(--space-6);
+    }
+
+    .text-section-body:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .text-section .divider {
+      margin: var(--space-8) auto;
+    }
+
+    /* ========================================
+       5. SHOWCASE
+       ======================================== */
+    .showcase {
+      padding: var(--space-24) 0;
+      background-color: var(--cream);
+    }
+
+    .showcase-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-16);
+      align-items: center;
+      margin-bottom: var(--space-20);
+    }
+
+    .showcase-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .showcase-row.reverse .showcase-image-wrap {
+      order: 2;
+    }
+
+    .showcase-row.reverse .showcase-text {
+      order: 1;
+    }
+
+    .showcase-image-wrap {
+      overflow: hidden;
+      border-radius: var(--radius);
+    }
+
+    .showcase-image {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+
+    .showcase-image-wrap:hover .showcase-image {
+      transform: scale(1.03);
+    }
+
+    .showcase-text {
+      padding: var(--space-12);
+    }
+
+    .showcase-text .section-heading {
+      font-size: var(--text-3xl);
+    }
+
+    .showcase-detail {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      color: var(--warm-gray);
+    }
+
+    .showcase-detail-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--champagne);
+    }
+
+    /* ========================================
+       6. GALLERY
+       ======================================== */
+    .gallery {
+      padding: var(--space-24) 0;
+      background-color: var(--linen);
+    }
+
+    .gallery-header {
+      text-align: center;
+      margin-bottom: var(--space-16);
+    }
+
+    .gallery-header .section-subtext {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: auto;
+      gap: var(--space-4);
+    }
+
+    .gallery-item {
+      overflow: hidden;
+      border-radius: var(--radius);
+      position: relative;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.05);
+    }
+
+    .gallery-item.tall {
+      grid-row: span 2;
+    }
+
+    .gallery-item.wide {
+      grid-column: span 2;
+    }
+
+    /* ========================================
+       7. METRICS
+       ======================================== */
+    .metrics {
+      padding: var(--space-20) 0;
+      background-color: var(--cream);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-8);
+      text-align: center;
+    }
+
+    .metrics-item {
+      padding: var(--space-10) var(--space-6);
+    }
+
+    .metrics-number {
+      font-family: var(--font-heading);
+      font-size: var(--text-5xl);
+      font-weight: 300;
+      line-height: 1;
+      color: var(--champagne);
+      margin-bottom: var(--space-4);
+    }
+
+    .metrics-label {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 400;
+      color: var(--warm-gray);
+      letter-spacing: 0.04em;
+    }
+
+    .metrics-divider {
+      width: 1px;
+      background-color: var(--blush);
+      margin: var(--space-10) 0;
+    }
+
+    /* ========================================
+       8. TEAM
+       ======================================== */
     .team {
-      padding: 64px 20px;
+      padding: var(--space-24) 0;
+      background-color: var(--linen);
     }
 
     .team-header {
-      margin-bottom: 40px;
+      text-align: center;
+      margin-bottom: var(--space-16);
+    }
+
+    .team-header .section-subtext {
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .team-grid {
-      grid-template-columns: 1fr;
-      gap: 40px;
-      max-width: 340px;
-      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-8);
     }
 
-    .team-photo {
-      height: 320px;
+    .team-card {
+      text-align: center;
     }
 
-    .team-name { font-size: 24px; margin-top: 16px; }  /* H3 */
-    .team-role { font-size: 14px; }                     /* Caption */
-    .team-bio { font-size: 16px; }                      /* Body 2 */
+    .team-card-image-wrap {
+      overflow: hidden;
+      border-radius: var(--radius);
+      margin-bottom: var(--space-6);
+    }
 
-    /* --- TESTIMONIALS --- */
+    .team-card-image {
+      width: 100%;
+      height: 380px;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .team-card:hover .team-card-image {
+      transform: scale(1.04);
+    }
+
+    .team-card-name {
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      font-weight: 500;
+      color: var(--charcoal);
+      margin-bottom: var(--space-1);
+    }
+
+    .team-card-role {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      color: var(--dusty-rose);
+      font-weight: 400;
+    }
+
+    /* ========================================
+       9. TESTIMONIALS
+       ======================================== */
     .testimonials {
-      padding: 64px 20px;
+      padding: var(--space-24) 0;
+      background-color: var(--cream);
+    }
+
+    .testimonials-header {
+      text-align: center;
+      margin-bottom: var(--space-16);
+    }
+
+    .testimonials-header .section-subtext {
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .testimonials-grid {
-      grid-template-columns: 1fr;
-      gap: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
     }
 
     .testimonial-card {
-      padding: 32px 24px;
+      background-color: var(--linen);
+      border-radius: var(--radius);
+      padding: var(--space-10);
+      display: flex;
+      flex-direction: column;
     }
 
-    .testimonial-name { font-size: 14px; }              /* Caption */
-    .testimonial-text { font-size: 18px; }              /* Body 1 */
-    .testimonial-quote { font-size: 60px; top: 8px; right: 16px; }
+    .testimonial-quote-mark {
+      font-family: var(--font-heading);
+      font-size: var(--text-4xl);
+      color: var(--champagne);
+      line-height: 1;
+      margin-bottom: var(--space-4);
+    }
 
-    /* --- FAQ --- */
+    .testimonial-text {
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.5;
+      color: var(--charcoal);
+      flex: 1;
+      margin-bottom: var(--space-8);
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .testimonial-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .testimonial-author-name {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 500;
+      color: var(--charcoal);
+    }
+
+    .testimonial-author-relation {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      color: var(--light-gray);
+    }
+
+    /* ========================================
+       10. PRICING
+       ======================================== */
+    .pricing {
+      padding: var(--space-24) 0;
+      background-color: var(--linen);
+    }
+
+    .pricing-header {
+      text-align: center;
+      margin-bottom: var(--space-16);
+    }
+
+    .pricing-header .section-subtext {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-8);
+    }
+
+    .pricing-card {
+      background-color: var(--cream);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pricing-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(44, 36, 32, 0.08);
+    }
+
+    .pricing-card.featured {
+      border: 2px solid var(--champagne);
+    }
+
+    .pricing-card-image {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+    }
+
+    .pricing-card-body {
+      padding: var(--space-8);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pricing-card-badge {
+      display: inline-flex;
+      align-self: flex-start;
+      padding: var(--space-1) var(--space-3);
+      background-color: var(--champagne);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: var(--radius-full);
+      margin-bottom: var(--space-4);
+    }
+
+    .pricing-card-name {
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      font-weight: 500;
+      color: var(--charcoal);
+      margin-bottom: var(--space-2);
+    }
+
+    .pricing-card-price {
+      font-family: var(--font-heading);
+      font-size: var(--text-2xl);
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-bottom: var(--space-6);
+    }
+
+    .pricing-card-price span {
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 400;
+      color: var(--light-gray);
+    }
+
+    .pricing-card-features {
+      flex: 1;
+      margin-bottom: var(--space-8);
+    }
+
+    .pricing-card-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      font-size: var(--text-body);
+      color: var(--warm-gray);
+    }
+
+    .pricing-card-feature svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: var(--champagne);
+    }
+
+    .pricing-card .btn-primary,
+    .pricing-card .btn-outline {
+      width: 100%;
+    }
+
+    /* ========================================
+       11. FAQ
+       ======================================== */
     .faq {
-      padding: 64px 20px;
+      padding: var(--space-24) 0;
+      background-color: var(--cream);
     }
 
-    .faq-header {
-      margin-bottom: 40px;
+    .faq-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: var(--space-16);
+      align-items: start;
     }
 
-    .faq-question h3 {
-      font-size: 16px;       /* Body 2 */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--blush);
+    }
+
+    .faq-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: var(--space-6) 0;
+      background: none;
+      border: none;
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      font-weight: 500;
+      color: var(--charcoal);
+      text-align: left;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .faq-question:hover {
+      color: var(--champagne);
+    }
+
+    .faq-icon {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+      color: var(--champagne);
+    }
+
+    .faq-item.active .faq-icon {
+      transform: rotate(45deg);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.4s ease;
+    }
+
+    .faq-item.active .faq-answer {
+      max-height: 200px;
+      padding-bottom: var(--space-6);
     }
 
     .faq-answer p {
-      font-size: 16px;       /* Body 2 */
+      font-size: var(--text-body);
+      line-height: 1.6;
+      color: var(--warm-gray);
     }
 
-    /* --- CONTACT FORM --- */
-    .contact-form-section {
-      padding: 64px 20px;
+    /* ========================================
+       12. LOCATION
+       ======================================== */
+    .location {
+      padding: var(--space-24) 0;
+      background-color: var(--linen);
     }
 
-    .contact-form-header {
-      margin-bottom: 40px;
+    .location-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-16);
+      align-items: center;
+    }
+
+    .location-map {
+      width: 100%;
+      height: 480px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background-color: var(--blush);
+    }
+
+    .location-map iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .location-details {
+      padding: var(--space-8);
+    }
+
+    .location-venue {
+      font-family: var(--font-heading);
+      font-size: var(--text-xl);
+      font-weight: 500;
+      color: var(--charcoal);
+      margin-bottom: var(--space-4);
+    }
+
+    .location-address {
+      font-size: var(--text-body);
+      color: var(--warm-gray);
+      line-height: 1.6;
+      margin-bottom: var(--space-8);
+    }
+
+    .location-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+
+    .location-info-item {
+      padding: var(--space-6);
+      background-color: var(--cream);
+      border-radius: var(--radius);
+    }
+
+    .location-info-label {
+      font-size: var(--text-body);
+      font-weight: 500;
+      color: var(--champagne);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+
+    .location-info-value {
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      color: var(--charcoal);
+    }
+
+    /* ========================================
+       13. CTA
+       ======================================== */
+    .cta {
+      position: relative;
+      padding: var(--space-24) 0;
+      overflow: hidden;
+    }
+
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1523438885200-e635ba2c371e?w=1600&h=800&fit=crop&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .cta-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.45);
+    }
+
+    .cta-inner {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta .section-label {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .cta .section-heading {
+      color: var(--white);
+      font-size: var(--text-3xl);
+    }
+
+    .cta .section-subtext {
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0 auto var(--space-10);
+    }
+
+    /* ========================================
+       14. CONTACT
+       ======================================== */
+    .contact {
+      padding: var(--space-24) 0;
+      background-color: var(--cream);
+    }
+
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: var(--space-16);
+      align-items: start;
     }
 
     .contact-form {
-      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    .contact-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
     }
 
     .form-label {
-      font-size: 14px;       /* Caption */
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      font-weight: 500;
+      color: var(--charcoal);
     }
 
     .form-input,
     .form-select,
     .form-textarea {
-      font-size: 16px;       /* Body 2 */
+      padding: var(--space-4) var(--space-5);
+      border: 1px solid var(--blush);
+      border-radius: var(--radius);
+      font-family: var(--font-body);
+      font-size: var(--text-body);
+      color: var(--charcoal);
+      background-color: var(--white);
+      transition: border-color 0.3s ease;
+      outline: none;
     }
 
-    .form-note {
-      font-size: 14px;       /* Caption */
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      border-color: var(--champagne);
     }
 
-    .form-submit {
-      width: 100%;
-      font-size: 14px;       /* Caption */
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
     }
 
-    /* --- BOOKING CTA --- */
-    .booking-cta {
-      padding: 64px 20px;
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+      color: var(--light-gray);
     }
 
-    .booking-cta-title {
-      font-size: 40px;       /* H1 */
+    /* ========================================
+       15. FOOTER
+       ======================================== */
+    .footer {
+      padding: var(--space-16) 0 var(--space-8);
+      background-color: var(--charcoal);
+      color: var(--white);
     }
 
-    .booking-cta-text {
-      font-size: 16px;       /* Body 2 */
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: var(--space-12);
+      padding-bottom: var(--space-12);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .booking-cta-buttons {
+    .footer-brand .header-logo-monogram {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: var(--white);
+      margin-bottom: var(--space-4);
+    }
+
+    .footer-brand-text {
+      font-size: var(--text-body);
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.6;
+      max-width: 300px;
+    }
+
+    .footer-col-title {
+      font-family: var(--font-heading);
+      font-size: var(--text-lg);
+      font-weight: 500;
+      margin-bottom: var(--space-6);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .footer-links a {
+      font-size: var(--text-body);
+      color: rgba(255, 255, 255, 0.6);
+      transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--white);
+      opacity: 1;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: var(--space-8);
+    }
+
+    .footer-copy {
+      font-size: var(--text-body);
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .footer-socials {
+      display: flex;
+      gap: var(--space-5);
+    }
+
+    .footer-socials a {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .footer-socials a:hover {
+      border-color: var(--champagne);
+      color: var(--champagne);
+      opacity: 1;
+    }
+
+    /* ========================================
+       ANIMATIONS
+       ======================================== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========================================
+       MOBILE MENU
+       ======================================== */
+    .header-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--white);
+      padding: var(--space-2);
+      cursor: pointer;
+    }
+
+    .header.scrolled .header-menu-toggle {
+      color: var(--charcoal);
+    }
+
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99;
+      background-color: rgba(251, 247, 242, 0.98);
+      backdrop-filter: blur(16px);
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .mobile-nav.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .mobile-nav-links {
+      display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: var(--space-8);
     }
 
-    .booking-cta-buttons .btn-primary,
-    .booking-cta-buttons .btn-secondary {
-      width: 100%;
-      max-width: 280px;
+    .mobile-nav-links a {
+      font-family: var(--font-heading);
+      font-size: var(--text-xl);
+      font-weight: 400;
+      color: var(--charcoal);
     }
 
-    /* --- CONTACT INFO --- */
-    .contact {
-      padding: 64px 20px;
+    /* ========================================
+       RESPONSIVE — TABLET (max 1024px)
+       ======================================== */
+    @media (max-width: 1024px) {
+      .container {
+        padding-left: var(--space-6);
+        padding-right: var(--space-6);
+      }
+
+      .section-heading {
+        font-size: var(--text-3xl);
+      }
+
+      /* Header */
+      .header {
+        padding: var(--space-5) var(--space-6);
+      }
+
+      .header-nav {
+        gap: var(--space-6);
+      }
+
+      /* Banner */
+      .banner-content {
+        padding: 0 var(--space-6) var(--space-12);
+      }
+
+      /* Feature */
+      .feature {
+        padding: var(--space-20) 0;
+      }
+
+      .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .feature-card:last-child {
+        grid-column: span 2;
+      }
+
+      .feature-card-image {
+        height: 300px;
+      }
+
+      /* Text */
+      .text-section {
+        padding: var(--space-20) 0;
+      }
+
+      .text-section-heading {
+        font-size: var(--text-xl);
+      }
+
+      /* Showcase */
+      .showcase {
+        padding: var(--space-20) 0;
+      }
+
+      .showcase-row {
+        gap: var(--space-10);
+      }
+
+      .showcase-image {
+        height: 400px;
+      }
+
+      .showcase-text {
+        padding: var(--space-6);
+      }
+
+      .showcase-text .section-heading {
+        font-size: var(--text-xl);
+      }
+
+      /* Gallery */
+      .gallery {
+        padding: var(--space-20) 0;
+      }
+
+      .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      /* Metrics */
+      .metrics-number {
+        font-size: var(--text-4xl);
+      }
+
+      /* Team */
+      .team {
+        padding: var(--space-20) 0;
+      }
+
+      .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .team-card-image {
+        height: 320px;
+      }
+
+      /* Testimonials */
+      .testimonials {
+        padding: var(--space-20) 0;
+      }
+
+      .testimonial-text {
+        font-size: var(--text-body);
+        line-height: 1.6;
+      }
+
+      /* Pricing */
+      .pricing {
+        padding: var(--space-20) 0;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      /* FAQ */
+      .faq-inner {
+        grid-template-columns: 1fr;
+        gap: var(--space-10);
+      }
+
+      /* Location */
+      .location-inner {
+        grid-template-columns: 1fr;
+        gap: var(--space-10);
+      }
+
+      .location-map {
+        height: 360px;
+      }
+
+      /* Contact */
+      .contact-inner {
+        grid-template-columns: 1fr;
+        gap: var(--space-10);
+      }
+
+      /* Footer */
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-10);
+      }
     }
 
-    .contact-inner {
-      grid-template-columns: 1fr;
-      gap: 40px;
+    /* ========================================
+       RESPONSIVE — MOBILE (max 768px)
+       ======================================== */
+    @media (max-width: 768px) {
+      .container {
+        padding-left: var(--space-5);
+        padding-right: var(--space-5);
+      }
+
+      .section-heading {
+        font-size: var(--text-xl);
+      }
+
+      .section-label {
+        font-size: 14px;
+      }
+
+      /* Header */
+      .header {
+        padding: var(--space-4) var(--space-5);
+      }
+
+      .header-nav {
+        display: none;
+      }
+
+      .header-menu-toggle {
+        display: flex;
+      }
+
+      .mobile-nav {
+        display: flex;
+      }
+
+      .header-cta {
+        display: none;
+      }
+
+      .header-logo-monogram {
+        width: 40px;
+        height: 40px;
+      }
+
+      .header-logo-text {
+        font-size: 8px;
+      }
+
+      /* Banner */
+      .banner {
+        min-height: 100vh;
+        min-height: 100svh;
+      }
+
+      .banner-content {
+        padding: 0 var(--space-5) var(--space-10);
+      }
+
+      .banner-labels {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+        margin-bottom: var(--space-3);
+      }
+
+      .banner-label {
+        font-size: 14px;
+      }
+
+      .banner-names {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .banner-name {
+        font-size: clamp(56px, 16vw, 96px);
+        line-height: 0.9;
+      }
+
+      /* Feature */
+      .feature {
+        padding: var(--space-16) 0;
+      }
+
+      .feature-header {
+        margin-bottom: var(--space-10);
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-card:last-child {
+        grid-column: span 1;
+      }
+
+      .feature-card-image {
+        height: 260px;
+      }
+
+      .feature-card-body {
+        padding: var(--space-6);
+      }
+
+      /* Text */
+      .text-section {
+        padding: var(--space-16) 0;
+      }
+
+      .text-section-heading {
+        font-size: var(--text-lg);
+        line-height: 1.4;
+      }
+
+      /* Showcase */
+      .showcase {
+        padding: var(--space-16) 0;
+      }
+
+      .showcase-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+        margin-bottom: var(--space-16);
+      }
+
+      .showcase-row.reverse .showcase-image-wrap {
+        order: 0;
+      }
+
+      .showcase-row.reverse .showcase-text {
+        order: 0;
+      }
+
+      .showcase-image {
+        height: 300px;
+      }
+
+      .showcase-text {
+        padding: 0;
+      }
+
+      .showcase-text .section-heading {
+        font-size: var(--text-lg);
+      }
+
+      /* Gallery */
+      .gallery {
+        padding: var(--space-16) 0;
+      }
+
+      .gallery-header {
+        margin-bottom: var(--space-10);
+      }
+
+      .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-3);
+      }
+
+      .gallery-item.tall {
+        grid-row: span 1;
+      }
+
+      .gallery-item.wide {
+        grid-column: span 1;
+      }
+
+      /* Metrics */
+      .metrics {
+        padding: var(--space-16) 0;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-4);
+      }
+
+      .metrics-number {
+        font-size: var(--text-3xl);
+      }
+
+      .metrics-item {
+        padding: var(--space-6) var(--space-4);
+      }
+
+      .metrics-divider {
+        display: none;
+      }
+
+      /* Team */
+      .team {
+        padding: var(--space-16) 0;
+      }
+
+      .team-header {
+        margin-bottom: var(--space-10);
+      }
+
+      .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-5);
+      }
+
+      .team-card-image {
+        height: 240px;
+      }
+
+      .team-card-name {
+        font-size: var(--text-body);
+      }
+
+      /* Testimonials */
+      .testimonials {
+        padding: var(--space-16) 0;
+      }
+
+      .testimonials-header {
+        margin-bottom: var(--space-10);
+      }
+
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .testimonial-card {
+        padding: var(--space-8);
+      }
+
+      .testimonial-quote-mark {
+        font-size: var(--text-3xl);
+      }
+
+      .testimonial-text {
+        font-size: var(--text-body);
+        margin-bottom: var(--space-6);
+      }
+
+      /* Pricing */
+      .pricing {
+        padding: var(--space-16) 0;
+      }
+
+      .pricing-header {
+        margin-bottom: var(--space-10);
+      }
+
+      .pricing-grid {
+        max-width: 100%;
+      }
+
+      .pricing-card-image {
+        height: 200px;
+      }
+
+      .pricing-card-body {
+        padding: var(--space-6);
+      }
+
+      .pricing-card-price {
+        font-size: var(--text-xl);
+      }
+
+      /* FAQ */
+      .faq {
+        padding: var(--space-16) 0;
+      }
+
+      .faq-question {
+        font-size: var(--text-body);
+        padding: var(--space-5) 0;
+      }
+
+      /* Location */
+      .location {
+        padding: var(--space-16) 0;
+      }
+
+      .location-map {
+        height: 280px;
+      }
+
+      .location-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-4);
+      }
+
+      .location-info-item {
+        padding: var(--space-4);
+      }
+
+      .location-info-value {
+        font-size: var(--text-body);
+      }
+
+      /* CTA */
+      .cta {
+        padding: var(--space-16) 0;
+      }
+
+      .cta .section-heading {
+        font-size: var(--text-lg) !important;
+      }
+
+      /* Contact */
+      .contact {
+        padding: var(--space-16) 0;
+      }
+
+      .contact-form-row {
+        grid-template-columns: 1fr;
+      }
+
+      /* Footer */
+      .footer {
+        padding: var(--space-12) 0 var(--space-6);
+      }
+
+      .footer-top {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        gap: var(--space-6);
+        text-align: center;
+      }
     }
 
-    .contact-phone {
-      font-size: 24px;       /* H3 */
-      margin-bottom: 16px;
-    }
+    /* ========================================
+       RESPONSIVE — SMALL MOBILE (max 480px)
+       ======================================== */
+    @media (max-width: 480px) {
+      .container {
+        padding-left: var(--space-4);
+        padding-right: var(--space-4);
+      }
 
-    .contact-col h3 {
-      font-size: 16px;       /* Body 2 */
-    }
+      .banner-name {
+        font-size: clamp(44px, 14vw, 72px);
+      }
 
-    .contact-hours li {
-      font-size: 16px;       /* Body 2 */
-    }
+      .section-heading {
+        font-size: var(--text-lg);
+      }
 
-    .contact-info-list li {
-      font-size: 16px;       /* Body 2 */
-    }
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
 
-    /* --- FOOTER --- */
-    .footer {
-      flex-direction: column;
-      gap: 16px;
-      text-align: center;
-      padding: 24px 20px;
-    }
+      .team-grid {
+        grid-template-columns: 1fr;
+      }
 
-    .footer-copy { font-size: 14px; }                   /* Caption */
-    .footer-social { gap: 16px; }
-    .footer-social a { font-size: 14px; }               /* Caption */
+      .team-card-image {
+        height: 300px;
+      }
 
-    /* --- ORNAMENTS --- */
-    .ornament::before,
-    .ornament::after {
-      width: 40px;
+      .location-info-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
-  }
-
-  /* ═══════════════════════════════════════════
-     SMALL PHONES (max-width: 400px)
-     ═══════════════════════════════════════════ */
-  @media (max-width: 400px) {
-    .about-stats {
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .gallery-grid {
-      grid-template-columns: 1fr;
-      grid-auto-rows: 240px;
-    }
-
-    .gallery-item:nth-child(1),
-    .gallery-item:nth-child(4) {
-      grid-column: span 1;
-    }
-  }
-</style>
+  </style>
 </head>
 <body>
 
-<!-- ═══════════════ NAVIGATION ═══════════════ -->
-<nav class="nav" id="nav">
-  <a href="#" class="nav-logo">T H R O N E</a>
-  <ul class="nav-links" id="navLinks">
-    <li><a href="#about">About</a></li>
-    <li><a href="#services">Services</a></li>
-    <li><a href="#team">Artists</a></li>
-    <li><a href="#gallery">Gallery</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li class="nav-menu-book"><a href="#booking" class="nav-book-btn nav-book-btn--menu">Book Now</a></li>
-  </ul>
-  <a href="#booking" class="nav-book-btn">Book Now</a>
-  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
+  <!-- ==========================================
+       1. HEADER
+       ========================================== -->
+  <header class="header" id="header">
+    <button class="header-menu-toggle" id="menuToggle" aria-label="Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="header-nav" id="headerNav">
+      <a href="#location">Location</a>
+      <a href="#features">The Day</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a href="#" class="header-logo">
+      <div class="header-logo-monogram">EK</div>
+      <span class="header-logo-text">Emma &amp; Karl</span>
+    </a>
+    <div class="header-cta">
+      <a href="#contact" class="btn-white">I'm coming!</a>
+    </div>
+  </header>
 
-<!-- ═══════════════ HERO ═══════════════ -->
-<section class="hero" id="hero">
-  <div class="hero-bg">
-    <div class="hero-bg-image"></div>
-    <div class="hero-bg-gradient"></div>
-    <div class="hero-bg-overlay"></div>
+  <!-- Mobile Nav Overlay -->
+  <div class="mobile-nav" id="mobileNav">
+    <nav class="mobile-nav-links">
+      <a href="#features">The Day</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#location">Location</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact" class="btn-primary" style="margin-top: var(--space-4);">I'm coming!</a>
+    </nav>
   </div>
-  <div class="hero-corner hero-corner--tl"></div>
-  <div class="hero-corner hero-corner--tr"></div>
-  <div class="hero-corner hero-corner--bl"></div>
-  <div class="hero-corner hero-corner--br"></div>
-  <div class="hero-content">
-    <p class="hero-est">EST. 2019 &middot; PORTLAND, OREGON</p>
-    <h1 class="hero-title">THRONE STUDIO</h1>
-    <p class="hero-subtitle-main">Custom Tattoo Studio</p>
-    <div class="hero-divider"></div>
-    <p class="hero-tagline">Every line tells a story.<br>Where timeless craft meets modern artistry.</p>
-    <div class="hero-cta-group">
-      <a href="#booking" class="btn-primary">BOOK A SESSION</a>
-      <a href="#services" class="btn-secondary">VIEW SERVICES</a>
-    </div>
-  </div>
-  <a href="#features" class="hero-scroll">
-    <span>SCROLL</span>
-    <div class="hero-scroll-line"></div>
-  </a>
-</section>
 
-<!-- ═══════════════ FEATURES ═══════════════ -->
-<section class="features" id="features">
-  <div class="features-header">
-    <span class="section-label reveal">WHY CHOOSE US</span>
-    <h2 class="section-title reveal">The Throne Difference</h2>
-    <div class="ornament reveal">
-      <div class="ornament-diamond"></div>
-    </div>
-  </div>
-  <div class="features-grid">
-    <div class="feature-card reveal reveal-delay-1">
-      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 19l-7-7 1.41-1.41L12 16.17l5.59-5.58L19 12l-7 7z"/><path d="M12 3v13" stroke-dasharray="2 3"/><circle cx="12" cy="3" r="1.5" fill="currentColor" stroke="none"/><path d="M4 21h16"/></svg></span>
-      <h3 class="feature-title">Master Craftsmanship</h3>
-      <p class="feature-desc">Every artist holds 10+ years of experience and ongoing training in latest techniques.</p>
-    </div>
-    <div class="feature-card reveal reveal-delay-2">
-      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2L4 12h5v8h6v-8h5L12 2z"/><path d="M8 22h8"/></svg></span>
-      <h3 class="feature-title">Premium Ink &amp; Safety</h3>
-      <p class="feature-desc">We use only medical-grade equipment and premium ink for clean, consistent results.</p>
-    </div>
-    <div class="feature-card reveal reveal-delay-3">
-      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
-      <h3 class="feature-title">5-Star Atmosphere</h3>
-      <p class="feature-desc">Private booths, curated playlists, and a calm environment designed for focus.</p>
-    </div>
-    <div class="feature-card reveal reveal-delay-1">
-      <span class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><circle cx="12" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg></span>
-      <h3 class="feature-title">Easy Booking</h3>
-      <p class="feature-desc">Book online in seconds or walk in anytime. Real-time availability.</p>
-    </div>
-    <div class="feature-card reveal reveal-delay-2">
-      <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M17 18c0 1-1.5 3-5 3s-5-2-5-3"/></svg></span>
-      <h3 class="feature-title">Complimentary Drinks</h3>
-      <p class="feature-desc">Every visit includes craft coffee, tea, or a splash of house bourbon.</p>
-    </div>
-    <div class="feature-card reveal reveal-delay-3">
-      <span class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span>
-      <h3 class="feature-title">Loyalty Rewards</h3>
-      <p class="feature-desc">Every 10th visit is free. Plus exclusive access to events.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ ABOUT ═══════════════ -->
-<section class="about" id="about">
-  <div class="about-inner">
-    <div class="about-image-frame reveal">
-      <img src="assets/43ffb35e9cd9207b7b0f17dfbac1175507c5ed1e.png" alt="Inside Throne Studio">
-    </div>
-    <div class="about-text">
-      <span class="section-label reveal">OUR STORY</span>
-      <h2 class="section-title reveal">More Than<br>a Tattoo</h2>
-      <div class="ornament reveal" style="margin-left: 0; justify-content: flex-start;">
-        <div class="ornament-diamond"></div>
+  <!-- ==========================================
+       2. BANNER / HERO
+       ========================================== -->
+  <section class="banner" id="banner">
+    <div class="banner-bg"></div>
+    <div style="height: 128px;"></div>
+    <div class="banner-content">
+      <div class="banner-labels">
+        <span class="banner-label">We're getting married</span>
+        <span class="banner-label">Saturday, 15 June, 2025</span>
       </div>
-      <p class="reveal">Throne was born from a belief that a tattoo studio should be a sanctuary &mdash; a place where craft is honored, conversation flows freely, and every client leaves with art that lasts a lifetime.</p>
-      <p class="reveal">Founded by lead tattoo artist Marcus Cole, our studio blends timeless techniques with contemporary style. From bold blackwork to fine-line realism, we approach every session with precision and care.</p>
-      <div class="about-stats reveal">
+      <div class="banner-names">
+        <span class="banner-name">Emma &</span>
+        <span class="banner-name">Karl</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       3. FEATURE
+       ========================================== -->
+  <section class="feature" id="features">
+    <div class="container">
+      <div class="feature-header fade-in">
+        <p class="section-label">Our Special Day</p>
+        <h2 class="section-heading">What to Expect</h2>
+        <p class="section-subtext">Three beautiful moments that will make this day unforgettable for everyone.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card fade-in">
+          <img class="feature-card-image" src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&h=500&fit=crop&q=80" alt="The Ceremony">
+          <div class="feature-card-body">
+            <h3 class="feature-card-title">The Ceremony</h3>
+            <p class="feature-card-text">An intimate exchange of vows under the old oak tree at sunset, surrounded by the people we love most.</p>
+          </div>
+        </div>
+        <div class="feature-card fade-in">
+          <img class="feature-card-image" src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&h=500&fit=crop&q=80" alt="The Reception">
+          <div class="feature-card-body">
+            <h3 class="feature-card-title">The Reception</h3>
+            <p class="feature-card-text">A farm-to-table dinner paired with handpicked wines, set under the twinkling lights of the garden pavilion.</p>
+          </div>
+        </div>
+        <div class="feature-card fade-in">
+          <img class="feature-card-image" src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=600&h=500&fit=crop&q=80" alt="The Celebration">
+          <div class="feature-card-body">
+            <h3 class="feature-card-title">The Celebration</h3>
+            <p class="feature-card-text">Dancing under the stars with a live band, sparklers, and a late-night dessert bar to keep the party going.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       4. TEXT SECTION
+       ========================================== -->
+  <section class="text-section" id="story">
+    <div class="container">
+      <div class="text-section-inner fade-in">
+        <p class="section-label">Our Love Story</p>
+        <h2 class="text-section-heading">"The best thing to hold onto in life is each other."</h2>
+        <div class="divider"></div>
+        <p class="text-section-body">
+          We met on a rainy Tuesday in October 2017 at a small bookshop on the corner of Maple Street. Karl was reaching for the same dog-eared copy of "Norwegian Wood" that Emma had spotted from across the room. That shared love of Murakami turned into shared coffee, which turned into shared everything.
+        </p>
+        <p class="text-section-body">
+          Eight years, three apartments, one rescue dog named Miso, and countless adventures later — we decided it was time to make it official. We can't wait to celebrate with the people who've made our story so beautiful.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       5. SHOWCASE
+       ========================================== -->
+  <section class="showcase" id="showcase">
+    <div class="container">
+      <div class="showcase-row fade-in">
+        <div class="showcase-image-wrap">
+          <img class="showcase-image" src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&h=600&fit=crop&q=80" alt="The Venue">
+        </div>
+        <div class="showcase-text">
+          <p class="section-label">The Venue</p>
+          <h2 class="section-heading">Rosewood Estate Gardens</h2>
+          <p class="section-subtext">Nestled between rolling hills and wildflower meadows, Rosewood Estate has been hosting celebrations for over a century. Its blend of rustic charm and timeless elegance is everything we dreamed of.</p>
+          <div class="showcase-detail">
+            <div class="showcase-detail-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <span>Cornwall, United Kingdom</span>
+          </div>
+        </div>
+      </div>
+      <div class="showcase-row reverse fade-in">
+        <div class="showcase-image-wrap">
+          <img class="showcase-image" src="https://images.unsplash.com/photo-1478146059778-26028b07395a?w=800&h=600&fit=crop&q=80" alt="The Dinner">
+        </div>
+        <div class="showcase-text">
+          <p class="section-label">The Dinner</p>
+          <h2 class="section-heading">A Night to Remember</h2>
+          <p class="section-subtext">Our chef has curated a seasonal menu featuring locally sourced ingredients. Expect handmade pasta, garden vegetables, and a champagne tower that would make Gatsby jealous.</p>
+          <div class="showcase-detail">
+            <div class="showcase-detail-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span>Dinner begins at 7:00 PM</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       6. GALLERY
+       ========================================== -->
+  <section class="gallery" id="gallery">
+    <div class="container">
+      <div class="gallery-header fade-in">
+        <p class="section-label">Memories</p>
+        <h2 class="section-heading">Our Journey Together</h2>
+        <p class="section-subtext">A few of our favourite moments from the last eight years.</p>
+      </div>
+      <div class="gallery-grid fade-in">
+        <div class="gallery-item tall">
+          <img src="https://images.unsplash.com/photo-1505932794465-147d1f1b2c97?w=500&h=700&fit=crop&q=80" alt="Gallery 1">
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=500&h=350&fit=crop&q=80" alt="Gallery 2" style="height:100%;min-height:220px;">
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=500&h=350&fit=crop&q=80" alt="Gallery 3" style="height:100%;min-height:220px;">
+        </div>
+        <div class="gallery-item tall">
+          <img src="https://images.unsplash.com/photo-1544078751-58fee2d8a03b?w=500&h=700&fit=crop&q=80" alt="Gallery 4">
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&h=350&fit=crop&q=80" alt="Gallery 5" style="height:100%;min-height:220px;">
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1525772764200-be829a350797?w=500&h=350&fit=crop&q=80" alt="Gallery 6" style="height:100%;min-height:220px;">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       7. METRICS
+       ========================================== -->
+  <section class="metrics" id="metrics">
+    <div class="container">
+      <div class="metrics-grid fade-in">
+        <div class="metrics-item">
+          <div class="metrics-number">350+</div>
+          <div class="metrics-label">Guests Invited</div>
+        </div>
+        <div class="metrics-item">
+          <div class="metrics-number">8</div>
+          <div class="metrics-label">Years Together</div>
+        </div>
+        <div class="metrics-item">
+          <div class="metrics-number">12</div>
+          <div class="metrics-label">Countries Explored</div>
+        </div>
+        <div class="metrics-item">
+          <div class="metrics-number">1</div>
+          <div class="metrics-label">Perfect Day</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       8. TEAM
+       ========================================== -->
+  <section class="team" id="team">
+    <div class="container">
+      <div class="team-header fade-in">
+        <p class="section-label">Wedding Party</p>
+        <h2 class="section-heading">The People We Love</h2>
+        <p class="section-subtext">The incredible humans standing by our side on the big day.</p>
+      </div>
+      <div class="team-grid fade-in">
+        <div class="team-card">
+          <div class="team-card-image-wrap">
+            <img class="team-card-image" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&q=80" alt="James Mitchell">
+          </div>
+          <h3 class="team-card-name">James Mitchell</h3>
+          <p class="team-card-role">Best Man</p>
+        </div>
+        <div class="team-card">
+          <div class="team-card-image-wrap">
+            <img class="team-card-image" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=500&fit=crop&q=80" alt="Sophie Turner">
+          </div>
+          <h3 class="team-card-name">Sophie Turner</h3>
+          <p class="team-card-role">Maid of Honour</p>
+        </div>
+        <div class="team-card">
+          <div class="team-card-image-wrap">
+            <img class="team-card-image" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&q=80" alt="Oliver Brooks">
+          </div>
+          <h3 class="team-card-name">Oliver Brooks</h3>
+          <p class="team-card-role">Groomsman</p>
+        </div>
+        <div class="team-card">
+          <div class="team-card-image-wrap">
+            <img class="team-card-image" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=500&fit=crop&q=80" alt="Charlotte Evans">
+          </div>
+          <h3 class="team-card-name">Charlotte Evans</h3>
+          <p class="team-card-role">Bridesmaid</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       9. TESTIMONIALS
+       ========================================== -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <div class="testimonials-header fade-in">
+        <p class="section-label">Kind Words</p>
+        <h2 class="section-heading">What Our Loved Ones Say</h2>
+        <p class="section-subtext">Messages from the people who know us best.</p>
+      </div>
+      <div class="testimonials-grid fade-in">
+        <div class="testimonial-card">
+          <div class="testimonial-quote-mark">"</div>
+          <p class="testimonial-text">They're the kind of couple that makes you believe in love stories. Watching them together is like reading your favourite novel — you never want it to end.</p>
+          <div class="testimonial-author">
+            <img class="testimonial-avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&q=80" alt="Rebecca Hall">
+            <div>
+              <div class="testimonial-author-name">Rebecca Hall</div>
+              <div class="testimonial-author-relation">Sister of the Bride</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-quote-mark">"</div>
+          <p class="testimonial-text">Karl hasn't stopped smiling since he met Emma. As his oldest friend, I can tell you — she's the best thing that ever happened to him. And he knows it.</p>
+          <div class="testimonial-author">
+            <img class="testimonial-avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&q=80" alt="Thomas Reid">
+            <div>
+              <div class="testimonial-author-name">Thomas Reid</div>
+              <div class="testimonial-author-relation">Friend of the Groom</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-quote-mark">"</div>
+          <p class="testimonial-text">From the moment Emma brought Karl home, we knew he was the one. He fits into our family like he was always meant to be there.</p>
+          <div class="testimonial-author">
+            <img class="testimonial-avatar" src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop&q=80" alt="Margaret Williams">
+            <div>
+              <div class="testimonial-author-name">Margaret Williams</div>
+              <div class="testimonial-author-relation">Mother of the Bride</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       10. PRICING
+       ========================================== -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <div class="pricing-header fade-in">
+        <p class="section-label">Wedding Packages</p>
+        <h2 class="section-heading">Celebrate Your Way</h2>
+        <p class="section-subtext">Whether intimate or grand, we've crafted packages to match every vision.</p>
+      </div>
+      <div class="pricing-grid fade-in">
+        <!-- Intimate -->
+        <div class="pricing-card">
+          <img class="pricing-card-image" src="https://images.unsplash.com/photo-1470290378698-263fa7ca60ab?w=600&h=400&fit=crop&q=80" alt="Intimate Package">
+          <div class="pricing-card-body">
+            <h3 class="pricing-card-name">Intimate</h3>
+            <div class="pricing-card-price">$8,500 <span>/ up to 50 guests</span></div>
+            <div class="pricing-card-features">
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Garden ceremony setup</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>3-course seated dinner</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Floral arrangements</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>2-hour photography</span>
+              </div>
+            </div>
+            <a href="#contact" class="btn-outline">Choose Intimate</a>
+          </div>
+        </div>
+        <!-- Classic (Featured) -->
+        <div class="pricing-card featured">
+          <img class="pricing-card-image" src="https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=600&h=400&fit=crop&q=80" alt="Classic Package">
+          <div class="pricing-card-body">
+            <span class="pricing-card-badge">Most Popular</span>
+            <h3 class="pricing-card-name">Classic</h3>
+            <div class="pricing-card-price">$18,000 <span>/ up to 150 guests</span></div>
+            <div class="pricing-card-features">
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Full venue ceremony &amp; reception</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>5-course dinner with wine pairing</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>DJ &amp; live music set</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Full-day photo &amp; video</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Custom floral design</span>
+              </div>
+            </div>
+            <a href="#contact" class="btn-primary">Choose Classic</a>
+          </div>
+        </div>
+        <!-- Grand -->
+        <div class="pricing-card">
+          <img class="pricing-card-image" src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&h=400&fit=crop&q=80" alt="Grand Package">
+          <div class="pricing-card-body">
+            <h3 class="pricing-card-name">Grand</h3>
+            <div class="pricing-card-price">$35,000 <span>/ up to 350 guests</span></div>
+            <div class="pricing-card-features">
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Exclusive full-estate buyout</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>7-course chef's tasting menu</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Live band &amp; fireworks show</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Luxury photo, video &amp; drone</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Wedding planner included</span>
+              </div>
+              <div class="pricing-card-feature">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Guest accommodation on-site</span>
+              </div>
+            </div>
+            <a href="#contact" class="btn-outline">Choose Grand</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       11. FAQ
+       ========================================== -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <div class="faq-inner">
+        <div class="fade-in">
+          <p class="section-label">Questions</p>
+          <h2 class="section-heading">Frequently Asked</h2>
+          <p class="section-subtext">Everything you need to know about our big day. If you can't find your answer here, don't hesitate to reach out.</p>
+        </div>
+        <div class="faq-list fade-in">
+          <div class="faq-item active">
+            <button class="faq-question">
+              <span>What is the dress code?</span>
+              <span class="faq-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <p>We're going with garden formal. Think flowy dresses, linen suits, and soft colours. Please avoid white and cream — that's Emma's job! Comfortable shoes are a must for the lawn.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question">
+              <span>Can I bring a plus one?</span>
+              <span class="faq-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <p>Your invitation will specify if you have a plus one. Due to venue capacity, we can only accommodate named guests. If you have questions, please contact us directly.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question">
+              <span>Is there parking at the venue?</span>
+              <span class="faq-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <p>Yes! Rosewood Estate has a private car park with space for 200 vehicles. Valet parking will also be available. We'll also arrange shuttle buses from the nearby hotels.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question">
+              <span>What about dietary requirements?</span>
+              <span class="faq-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <p>Please let us know your dietary needs when you RSVP. Our chef can accommodate vegetarian, vegan, gluten-free, and most allergy requirements with advance notice.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question">
+              <span>Are children welcome?</span>
+              <span class="faq-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <p>Absolutely! We love having little ones around. We'll have a kids' corner with activities, and a special children's menu will be available. High chairs can be provided upon request.</p>
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question">
+              <span>When should I RSVP by?</span>
+              <span class="faq-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <p>Please RSVP by May 1st, 2025 so we can finalize numbers with our caterer and venue. You can RSVP through this website or by returning the card included with your invitation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       12. LOCATION
+       ========================================== -->
+  <section class="location" id="location">
+    <div class="container">
+      <div class="location-inner fade-in">
+        <div class="location-map">
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2591.0!2d-5.05!3d50.27!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNTDCsDE2JzEyLjAiTiA1wrAwMycwMC4wIlc!5e0!3m2!1sen!2suk!4v1600000000000" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="location-details">
+          <p class="section-label">Where to Find Us</p>
+          <h3 class="location-venue">Rosewood Estate Gardens</h3>
+          <p class="location-address">
+            Rosewood Lane, Falmouth<br>
+            Cornwall, TR11 4NQ<br>
+            United Kingdom
+          </p>
+          <div class="location-info-grid">
+            <div class="location-info-item">
+              <div class="location-info-label">Ceremony</div>
+              <div class="location-info-value">3:00 PM</div>
+            </div>
+            <div class="location-info-item">
+              <div class="location-info-label">Reception</div>
+              <div class="location-info-value">5:00 PM</div>
+            </div>
+            <div class="location-info-item">
+              <div class="location-info-label">Dinner</div>
+              <div class="location-info-value">7:00 PM</div>
+            </div>
+            <div class="location-info-item">
+              <div class="location-info-label">Party</div>
+              <div class="location-info-value">9:00 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       13. CTA
+       ========================================== -->
+  <section class="cta" id="rsvp">
+    <div class="cta-bg"></div>
+    <div class="container">
+      <div class="cta-inner fade-in">
+        <p class="section-label">Save the Date</p>
+        <h2 class="section-heading" style="color: var(--white); font-size: var(--text-3xl);">We'd Love to Have You There</h2>
+        <p class="section-subtext" style="color: rgba(255,255,255,0.8); margin: 0 auto var(--space-10);">Join us on June 15th, 2025 for a day filled with love, laughter, and unforgettable memories. Don't forget to RSVP!</p>
+        <div style="display: flex; gap: var(--space-4); justify-content: center;">
+          <a href="#contact" class="btn-white">RSVP Now</a>
+          <a href="#location" class="btn-outline" style="color: var(--white); border-color: var(--white);">Get Directions</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       14. CONTACT
+       ========================================== -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="contact-inner fade-in">
         <div>
-          <div class="about-stat-num">7</div>
-          <div class="about-stat-label">YEARS RUNNING</div>
+          <p class="section-label">RSVP</p>
+          <h2 class="section-heading">Let Us Know<br>You're Coming</h2>
+          <p class="section-subtext" style="margin-bottom: var(--space-8);">Please fill out the form below to confirm your attendance. We can't wait to celebrate with you.</p>
+          <div style="display: flex; flex-direction: column; gap: var(--space-6);">
+            <div class="showcase-detail">
+              <div class="showcase-detail-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <span>hello@emmaandkarl.com</span>
+            </div>
+            <div class="showcase-detail">
+              <div class="showcase-detail-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <span>+44 1234 567 890</span>
+            </div>
+          </div>
+        </div>
+        <form class="contact-form" onsubmit="event.preventDefault();">
+          <div class="contact-form-row">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-input" placeholder="Your first name">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              <input type="text" class="form-input" placeholder="Your last name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" placeholder="your@email.com">
+          </div>
+          <div class="contact-form-row">
+            <div class="form-group">
+              <label class="form-label">Number of Guests</label>
+              <select class="form-select">
+                <option>1 Guest</option>
+                <option>2 Guests</option>
+                <option>3 Guests</option>
+                <option>4+ Guests</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dietary Requirements</label>
+              <select class="form-select">
+                <option>None</option>
+                <option>Vegetarian</option>
+                <option>Vegan</option>
+                <option>Gluten-Free</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message (Optional)</label>
+            <textarea class="form-textarea" placeholder="Any special requests or notes for us..."></textarea>
+          </div>
+          <button type="submit" class="btn-primary">Send RSVP</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       15. FOOTER
+       ========================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="header-logo-monogram" style="margin-bottom: var(--space-4);">EK</div>
+          <p class="footer-brand-text">Emma &amp; Karl are tying the knot on June 15th, 2025 at Rosewood Estate Gardens, Cornwall.</p>
         </div>
         <div>
-          <div class="about-stat-num">12k+</div>
-          <div class="about-stat-label">HAPPY CLIENTS</div>
+          <h4 class="footer-col-title">Navigate</h4>
+          <ul class="footer-links">
+            <li><a href="#story">Our Story</a></li>
+            <li><a href="#features">The Day</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#team">Wedding Party</a></li>
+          </ul>
         </div>
         <div>
-          <div class="about-stat-num">5</div>
-          <div class="about-stat-label">TATTOO ARTISTS</div>
+          <h4 class="footer-col-title">Details</h4>
+          <ul class="footer-links">
+            <li><a href="#location">Venue</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#pricing">Packages</a></li>
+            <li><a href="#contact">RSVP</a></li>
+          </ul>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ SERVICES ═══════════════ -->
-<section class="services" id="services">
-  <div class="services-header">
-    <span class="section-label reveal">WHAT WE OFFER</span>
-    <h2 class="section-title reveal">Services &amp; Pricing</h2>
-    <div class="ornament reveal">
-      <div class="ornament-diamond"></div>
-    </div>
-  </div>
-  <div class="services-grid">
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Custom Design Consultation</span>
-        <div class="service-meta">
-          <span class="service-duration">30 MIN</span>
-          <span class="service-price">$75</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>30 MIN</span></div>
-          <ul class="service-checklist">
-            <li>One-on-one design session</li>
-            <li>Reference gathering &amp; mood boards</li>
-            <li>Custom sketch drafts</li>
-            <li>Placement discussion</li>
-            <li>Size &amp; pricing estimate</li>
-            <li>Digital mockup preview</li>
+        <div>
+          <h4 class="footer-col-title">Accommodation</h4>
+          <ul class="footer-links">
+            <li><a href="#">The Rosewood Inn</a></li>
+            <li><a href="#">Falmouth Hotel</a></li>
+            <li><a href="#">The Green House</a></li>
+            <li><a href="#">Airbnb Options</a></li>
           </ul>
         </div>
       </div>
-    </div>
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Black &amp; Gray Tattoo</span>
-        <div class="service-meta">
-          <span class="service-duration">2-4 HRS</span>
-          <span class="service-price">$200/hr</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>2-4 HRS</span></div>
-          <ul class="service-checklist">
-            <li>Custom design included</li>
-            <li>Premium black ink</li>
-            <li>Smooth gradient shading</li>
-            <li>Aftercare kit provided</li>
-            <li>Free touch-up within 3 months</li>
-            <li>Photo documentation</li>
-          </ul>
+      <div class="footer-bottom">
+        <p class="footer-copy">&copy; 2025 Emma &amp; Karl. Made with love.</p>
+        <div class="footer-socials">
+          <a href="#" aria-label="Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="#" aria-label="Pinterest">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.04-2.83.19-.78 1.22-5.17 1.22-5.17s-.31-.62-.31-1.54c0-1.45.84-2.53 1.89-2.53.89 0 1.32.67 1.32 1.47 0 .9-.57 2.24-.87 3.48-.25 1.05.52 1.9 1.55 1.9 1.86 0 3.29-1.96 3.29-4.79 0-2.51-1.8-4.26-4.37-4.26-2.98 0-4.73 2.24-4.73 4.55 0 .9.35 1.87.78 2.39.09.11.1.2.07.31l-.29 1.18c-.05.19-.16.23-.36.14-1.34-.62-2.18-2.58-2.18-4.16 0-3.38 2.46-6.49 7.09-6.49 3.72 0 6.62 2.65 6.62 6.2 0 3.7-2.33 6.68-5.57 6.68-1.09 0-2.11-.56-2.46-1.23l-.67 2.55c-.24.93-.9 2.1-1.34 2.81 1.01.31 2.08.48 3.19.48 5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+          </a>
+          <a href="#" aria-label="Twitter">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+          </a>
         </div>
       </div>
     </div>
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Realism Tattoo</span>
-        <div class="service-meta">
-          <span class="service-duration">3-6 HRS</span>
-          <span class="service-price">$250/hr</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>3-6 HRS</span></div>
-          <ul class="service-checklist">
-            <li>Photo-realistic detail work</li>
-            <li>Portrait specialization</li>
-            <li>High-detail shading</li>
-            <li>Premium ink selection</li>
-            <li>Multiple reference options</li>
-            <li>Free touch-up within 3 months</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Cover-Up Tattoo</span>
-        <div class="service-meta">
-          <span class="service-duration">3-6 HRS</span>
-          <span class="service-price">$250/hr</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>3-6 HRS</span></div>
-          <ul class="service-checklist">
-            <li>Existing tattoo assessment</li>
-            <li>Custom cover design</li>
-            <li>Strategic placement planning</li>
-            <li>Color correction expertise</li>
-            <li>Multiple design iterations</li>
-            <li>Before/after documentation</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Fine-Line Tattoo</span>
-        <div class="service-meta">
-          <span class="service-duration">2-4 HRS</span>
-          <span class="service-price">$200/hr</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>2-4 HRS</span></div>
-          <ul class="service-checklist">
-            <li>Delicate linework</li>
-            <li>Minimalist designs</li>
-            <li>Script &amp; lettering</li>
-            <li>Micro detail precision</li>
-            <li>Aftercare kit included</li>
-            <li>Free touch-up within 3 months</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Full Sleeve Session</span>
-        <div class="service-meta">
-          <span class="service-duration">6-8 HRS</span>
-          <span class="service-price">$250/hr</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>6-8 HRS</span></div>
-          <ul class="service-checklist">
-            <li>Full arm composition</li>
-            <li>Multi-session planning</li>
-            <li>Cohesive design flow</li>
-            <li>Progress documentation</li>
-            <li>Touch-ups between sessions</li>
-            <li>Priority scheduling</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Touch-Up Session</span>
-        <div class="service-meta">
-          <span class="service-duration">1-2 HRS</span>
-          <span class="service-price">$150/hr</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>1-2 HRS</span></div>
-          <ul class="service-checklist">
-            <li>Color refreshing</li>
-            <li>Line sharpening</li>
-            <li>Detail restoration</li>
-            <li>Free for Throne originals</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="service-item reveal">
-      <div class="service-header" onclick="toggleAccordion(this)">
-        <span class="service-name">Color Tattoo</span>
-        <div class="service-meta">
-          <span class="service-duration">2-4 HRS</span>
-          <span class="service-price">$225/hr</span>
-          <div class="service-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-        </div>
-      </div>
-      <div class="service-details">
-        <div class="service-details-inner">
-          <div class="service-details-meta"><span>2-4 HRS</span></div>
-          <ul class="service-checklist">
-            <li>Full-color custom work</li>
-            <li>Vibrant ink selection</li>
-            <li>Color theory consultation</li>
-            <li>Watercolor &amp; neo-traditional</li>
-            <li>Aftercare kit provided</li>
-            <li>Free touch-up within 3 months</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+  </footer>
 
-<!-- ═══════════════ GALLERY ═══════════════ -->
-<section class="gallery" id="gallery">
-  <div class="gallery-header">
-    <span class="section-label reveal">THE ATMOSPHERE</span>
-    <h2 class="section-title reveal">Inside Throne</h2>
-    <div class="ornament reveal">
-      <div class="ornament-diamond"></div>
-    </div>
-  </div>
-  <div class="gallery-grid">
-    <div class="gallery-item reveal reveal-delay-1">
-      <img src="assets/ffa12b4ea584ca232c425159153183e313d5f9aa.png" alt="The Main Floor">
-      <div class="gallery-item-label"><span>The Main Floor</span></div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-2">
-      <img src="assets/11f282e3e7e4506f88cfca1d233656fa84557f5f.png" alt="Tattoo Station">
-      <div class="gallery-item-label"><span>Tattoo Station</span></div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-3">
-      <img src="assets/14310f7cf74c8a1bcf87924de54bd5f71e938f1e.png" alt="Heritage Chairs">
-      <div class="gallery-item-label"><span>Heritage Chairs</span></div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-1">
-      <img src="assets/ffe8e1550df1694bd38d786b85c93191cb58d086.png" alt="The Lounge">
-      <div class="gallery-item-label"><span>The Lounge</span></div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-2">
-      <img src="assets/800273bb58b26d8c20ebcfa80d681d783e244213.png" alt="Product Wall">
-      <div class="gallery-item-label"><span>Product Wall</span></div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-3">
-      <img src="assets/590882a3ec000ca8e99eca0639add180fb1ec674.png" alt="Vinyl Corner">
-      <div class="gallery-item-label"><span>Vinyl Corner</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ TEAM ═══════════════ -->
-<section class="team" id="team">
-  <div class="team-header">
-    <span class="section-label reveal">THE CRAFTSMEN</span>
-    <h2 class="section-title reveal">Meet Your Tattoo Artists</h2>
-    <div class="ornament reveal">
-      <div class="ornament-diamond"></div>
-    </div>
-  </div>
-  <div class="team-grid">
-    <div class="team-card reveal reveal-delay-1">
-      <div class="team-photo">
-        <img src="assets/7af8e80ac69dd9b75a3a01a5b9ee1fb290ed0357.png" alt="Marcus Cole">
-      </div>
-      <h3 class="team-name">Marcus Cole</h3>
-      <p class="team-role">FOUNDER &amp; TATTOO ARTIST</p>
-      <p class="team-bio">20 years behind the machine. Trained in London. Specializes in bold blackwork and fine-line realism.</p>
-    </div>
-    <div class="team-card reveal reveal-delay-2">
-      <div class="team-photo">
-        <img src="assets/7af8e80ac69dd9b75a3a01a5b9ee1fb290ed0357.png" alt="James Rivera">
-      </div>
-      <h3 class="team-name">James Rivera</h3>
-      <p class="team-role">SENIOR TATTOO ARTIST</p>
-      <p class="team-bio">Realism specialist and detail expert. Known for precision shading and crisp linework.</p>
-    </div>
-    <div class="team-card reveal reveal-delay-3">
-      <div class="team-photo">
-        <img src="assets/7af8e80ac69dd9b75a3a01a5b9ee1fb290ed0357.png" alt="Elijah Okafor">
-      </div>
-      <h3 class="team-name">Elijah Okafor</h3>
-      <p class="team-role">TATTOO ARTIST</p>
-      <p class="team-bio">Color specialist with a creative edge. Brings fashion-forward style to every tattoo.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ TESTIMONIALS ═══════════════ -->
-<section class="testimonials" id="testimonials">
-  <div class="features-header">
-    <span class="section-label reveal">WHAT THEY SAY</span>
-    <h2 class="section-title reveal">Client Voices</h2>
-    <div class="ornament reveal">
-      <div class="ornament-diamond"></div>
-    </div>
-  </div>
-  <div class="testimonials-grid">
-    <div class="testimonial-card reveal reveal-delay-1">
-      <span class="testimonial-quote">&ldquo;</span>
-      <p class="testimonial-name">DAVID HARRINGTON</p>
-      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
-      <p class="testimonial-text">Marcus did an incredible piece on my forearm. The detail and shading are unreal &mdash; everyone asks where I got it done. Throne is the real deal.</p>
-    </div>
-    <div class="testimonial-card reveal reveal-delay-2">
-      <span class="testimonial-quote">&ldquo;</span>
-      <p class="testimonial-name">RYAN MITCHELL</p>
-      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
-      <p class="testimonial-text">James gave my wife an amazing fine-line piece for her birthday. The studio is clean, calm, and the whole experience felt premium from start to finish.</p>
-    </div>
-    <div class="testimonial-card reveal reveal-delay-1">
-      <span class="testimonial-quote">&ldquo;</span>
-      <p class="testimonial-name">MICHAEL TORRES</p>
-      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
-      <p class="testimonial-text">Had a cover-up done here that completely transformed my old tattoo. The artists truly care about the craft. Will be coming back for my sleeve.</p>
-    </div>
-    <div class="testimonial-card reveal reveal-delay-2">
-      <span class="testimonial-quote">&ldquo;</span>
-      <p class="testimonial-name">CHRIS NAKAMURA</p>
-      <p class="testimonial-stars">&#9733; &#9733; &#9733; &#9733; &#9733;</p>
-      <p class="testimonial-text">Best tattoo studio in Portland, hands down. The bourbon while you wait is a nice touch too. Elijah&rsquo;s color work is next level.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ FAQ ═══════════════ -->
-<section class="faq" id="faq">
-  <div class="faq-header">
-    <span class="section-label reveal">COMMON QUESTIONS</span>
-    <h2 class="section-title reveal">Frequently Asked</h2>
-    <div class="ornament reveal">
-      <div class="ornament-diamond"></div>
-    </div>
-  </div>
-  <div class="faq-grid">
-    <div class="faq-item reveal">
-      <div class="faq-question" onclick="toggleFaq(this)">
-        <h3>Do I need an appointment, or do you accept walk-ins?</h3>
-        <div class="faq-toggle"></div>
-      </div>
-      <div class="faq-answer">
-        <p>We welcome walk-ins every day, but we highly recommend booking an appointment to guarantee your preferred artist and time slot. You can book online or call us directly.</p>
-      </div>
-    </div>
-    <div class="faq-item reveal">
-      <div class="faq-question" onclick="toggleFaq(this)">
-        <h3>How long does a typical tattoo session take?</h3>
-        <div class="faq-toggle"></div>
-      </div>
-      <div class="faq-answer">
-        <p>Session length varies by design complexity. Small pieces take 1&ndash;2 hours, while larger work like sleeves can be 6&ndash;8 hour sessions spread across multiple appointments. We&rsquo;ll discuss timeline during your consultation.</p>
-      </div>
-    </div>
-    <div class="faq-item reveal">
-      <div class="faq-question" onclick="toggleFaq(this)">
-        <h3>What forms of payment do you accept?</h3>
-        <div class="faq-toggle"></div>
-      </div>
-      <div class="faq-answer">
-        <p>We accept all major credit cards, debit cards, Apple Pay, Google Pay, and cash. A non-refundable deposit is required at booking to secure your appointment.</p>
-      </div>
-    </div>
-    <div class="faq-item reveal">
-      <div class="faq-question" onclick="toggleFaq(this)">
-        <h3>Can I request a specific artist?</h3>
-        <div class="faq-toggle"></div>
-      </div>
-      <div class="faq-answer">
-        <p>Absolutely. Each of our artists has their own specialty and style. We encourage you to browse their portfolios and request whoever resonates with your vision. Book early for preferred availability.</p>
-      </div>
-    </div>
-    <div class="faq-item reveal">
-      <div class="faq-question" onclick="toggleFaq(this)">
-        <h3>Do you offer services for minors?</h3>
-        <div class="faq-toggle"></div>
-      </div>
-      <div class="faq-answer">
-        <p>Oregon law requires all tattoo clients to be 18 or older with valid photo ID. We do not make exceptions. We&rsquo;re happy to schedule a consultation for your 18th birthday though!</p>
-      </div>
-    </div>
-    <div class="faq-item reveal">
-      <div class="faq-question" onclick="toggleFaq(this)">
-        <h3>What is your cancellation policy?</h3>
-        <div class="faq-toggle"></div>
-      </div>
-      <div class="faq-answer">
-        <p>We require 48 hours notice for cancellations. Late cancellations or no-shows will forfeit their deposit. We understand life happens &mdash; please communicate with us and we&rsquo;ll do our best to accommodate reschedules.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ CONTACT FORM ═══════════════ -->
-<section class="contact-form-section" id="contact-form">
-  <div class="contact-form-header">
-    <span class="section-label reveal">GET IN TOUCH</span>
-    <h2 class="section-title reveal">Send Us a Message</h2>
-    <div class="ornament reveal">
-      <div class="ornament-diamond"></div>
-    </div>
-  </div>
-  <form class="contact-form reveal" onsubmit="handleSubmit(event)">
-    <div class="form-group">
-      <label class="form-label">YOUR NAME</label>
-      <input type="text" class="form-input" placeholder="John Doe" required>
-    </div>
-    <div class="form-group">
-      <label class="form-label">EMAIL ADDRESS</label>
-      <input type="email" class="form-input" placeholder="john@example.com" required>
-    </div>
-    <div class="form-group">
-      <label class="form-label">PHONE NUMBER</label>
-      <input type="tel" class="form-input" placeholder="(503) 555-0000">
-    </div>
-    <div class="form-group">
-      <label class="form-label">SERVICE INTEREST</label>
-      <select class="form-select" required>
-        <option value="">Select a service...</option>
-        <option value="consultation">Custom Design Consultation</option>
-        <option value="blackgray">Black &amp; Gray Tattoo</option>
-        <option value="realism">Realism Tattoo</option>
-        <option value="coverup">Cover-Up Tattoo</option>
-        <option value="fineline">Fine-Line Tattoo</option>
-        <option value="sleeve">Full Sleeve Session</option>
-        <option value="touchup">Touch-Up Session</option>
-        <option value="color">Color Tattoo</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">YOUR MESSAGE</label>
-      <textarea class="form-textarea" placeholder="Tell us about your idea..." rows="4"></textarea>
-      <p class="form-note">For urgent inquiries, call us directly.</p>
-    </div>
-    <button type="submit" class="form-submit">SEND MESSAGE</button>
-  </form>
-</section>
-
-<!-- ═══════════════ BOOKING CTA ═══════════════ -->
-<section class="booking-cta" id="booking">
-  <span class="section-label reveal">READY?</span>
-  <h2 class="booking-cta-title reveal">Your Story<br>Starts Here</h2>
-  <p class="booking-cta-text reveal">Walk-ins welcome, but appointments are recommended to guarantee your preferred artist and time slot.</p>
-  <div class="booking-cta-buttons reveal">
-    <a href="#" class="btn-primary">BOOK ONLINE</a>
-    <a href="#" class="btn-secondary">GIFT CARDS</a>
-  </div>
-</section>
-
-<!-- ═══════════════ CONTACT INFO ═══════════════ -->
-<section class="contact" id="contact">
-  <div class="contact-inner">
-    <a href="tel:5035550199" class="contact-phone">(503) 555-0199</a>
-    <div class="contact-col">
-      <h3>Hours</h3>
-      <ul class="contact-hours">
-        <li><span>Monday</span><span>9:00 &ndash; 7:00</span></li>
-        <li><span>Tuesday</span><span>9:00 &ndash; 7:00</span></li>
-        <li><span>Wednesday</span><span>9:00 &ndash; 7:00</span></li>
-        <li><span>Thursday</span><span>9:00 &ndash; 8:00</span></li>
-        <li><span>Friday</span><span>9:00 &ndash; 8:00</span></li>
-        <li><span>Saturday</span><span>8:00 &ndash; 6:00</span></li>
-        <li><span>Sunday</span><span>Closed</span></li>
-      </ul>
-    </div>
-    <div class="contact-col">
-      <h3>Find Us</h3>
-      <ul class="contact-info-list">
-        <li>742 NW Everett Street<br>Portland, OR 97209</li>
-        <li><a href="tel:5035550199">(503) 555-0199</a></li>
-        <li><a href="mailto:hello@thronestudio.com">hello@thronestudio.com</a></li>
-        <li><a href="#">@throne.pdx on Instagram</a></li>
-      </ul>
-    </div>
-    <div class="contact-col">
-      <h3>Location</h3>
-      <div class="contact-map">
-        <img src="assets/4414237da4cc306b7ce14c26e2372766bafbff86.png" alt="Map location">
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════ FOOTER ═══════════════ -->
-<footer class="footer">
-  <p class="footer-copy">&copy; 2026 THRONE STUDIO &middot; PORTLAND, OR</p>
-  <ul class="footer-social">
-    <li><a href="#">Instagram</a></li>
-    <li><a href="#">Facebook</a></li>
-    <li><a href="#">Yelp</a></li>
-  </ul>
-</footer>
-
-<script>
-  // ═══════════ NAV SCROLL EFFECT ═══════════
-  const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 60);
-  });
-
-  // ═══════════ MOBILE MENU ═══════════
-  const navToggle = document.getElementById('navToggle');
-  const navLinks = document.getElementById('navLinks');
-  navToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-  });
-
-  // Close menu on link click
-  navLinks.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => navLinks.classList.remove('active'));
-  });
-
-  // ═══════════ SCROLL REVEAL ═══════════
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
+  <!-- ==========================================
+       JAVASCRIPT
+       ========================================== -->
+  <script>
+    // Header scroll effect
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 80) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
       }
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
 
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileNav = document.getElementById('mobileNav');
+    menuToggle.addEventListener('click', () => {
+      mobileNav.classList.toggle('open');
+      header.classList.toggle('scrolled', mobileNav.classList.contains('open') || window.scrollY > 80);
+    });
+    // Close mobile nav on link click
+    document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileNav.classList.remove('open');
+      });
+    });
 
-  // ═══════════ ACCORDION (Services) ═══════════
-  function toggleAccordion(header) {
-    const item = header.closest('.service-item');
-    const wasOpen = item.classList.contains('open');
+    // FAQ accordion
+    document.querySelectorAll('.faq-question').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.parentElement;
+        const isActive = item.classList.contains('active');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+        if (!isActive) {
+          item.classList.add('active');
+        }
+      });
+    });
 
-    // Close all
-    document.querySelectorAll('.service-item').forEach(i => i.classList.remove('open'));
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-    // Toggle current
-    if (!wasOpen) item.classList.add('open');
-  }
-
-  // ═══════════ FAQ TOGGLE ═══════════
-  function toggleFaq(question) {
-    const item = question.closest('.faq-item');
-    const wasOpen = item.classList.contains('open');
-
-    // Close all
-    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-
-    // Toggle current
-    if (!wasOpen) item.classList.add('open');
-  }
-
-  // ═══════════ FORM SUBMISSION ═══════════
-  function handleSubmit(e) {
-    e.preventDefault();
-    const btn = e.target.querySelector('.form-submit');
-    btn.textContent = 'MESSAGE SENT ✓';
-    btn.style.background = '#2d6a4f';
-    btn.style.borderColor = '#2d6a4f';
-    btn.style.color = '#fff';
-    setTimeout(() => {
-      btn.textContent = 'SEND MESSAGE';
-      btn.style.background = '';
-      btn.style.borderColor = '';
-      btn.style.color = '';
-      e.target.reset();
-    }, 3000);
-  }
-</script>
-
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
 </body>
 </html>

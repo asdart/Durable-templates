@@ -1,5 +1,3 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/wedding/$1" }
-  ]
+  "cleanUrls": true
 }
