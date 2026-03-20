@@ -1,3 +1,5 @@
 {
-  "outputDirectory": "wedding"
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/wedding/$1" }
+  ]
 }
